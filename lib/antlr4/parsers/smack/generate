@@ -1,0 +1,14 @@
+#!/bin/bash
+antlr4 -Dlanguage=JavaScript -visitor ./Smack.g4 -package SmackPackage
+replace antlr4/index ../../index SmackLexer.js SmackLexer_.js
+replace antlr4/index ../../index SmackListener.js SmackListener_.js
+replace antlr4/index ../../index SmackVisitor.js SmackVisitor_.js
+replace antlr4/index ../../index SmackParser.js SmackParser_.js
+cp SmackLexer_.js SmackLexer.js
+rm SmackLexer_.js
+cp SmackListener_.js SmackListener.js
+rm SmackListener_.js
+cp SmackVisitor_.js SmackVisitor.js
+rm SmackVisitor_.js
+cp SmackParser_.js SmackParser.js
+rm SmackParser_.js
