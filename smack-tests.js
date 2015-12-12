@@ -20,10 +20,144 @@
 
 Ember.run.backburner.DEBUG = true;
 
-QUnit.test( "+", function( assert ) {
-	Smack.api
-	
-	assert.strictEqual( Papu.SF.hasCustomSfRelationExtension('someName__r'), true, "Expecting true with ending '__r'" );
-	assert.strictEqual( Papu.SF.hasCustomSfRelationExtension('someName__r_'), false, "Expecting false with ending '__r_'" );
-	assert.strictEqual( Papu.SF.hasCustomSfRelationExtension('someName'), false, "Expecting false with no ending" );
+QUnit.test( "Arithmetics", function( assert ) {
+	var source = Papu.getFileContents('lib/testCode/arithmetics.smk');
+	console.log(source);
+	Smack.api.compile(source);
+
+	Smack.api.execute('add', [1.1,1.1], function(res){ assert.equal(res, 2.2, '1.1 + 1.1 calculation failed'); });
+
+	Smack.api.execute('add', [-1.1,1.1], function(res){ assert.equal(res, 0, '-1.1 + 1.1 calculation failed'); });
+
+	Smack.api.execute('add', [1.1,-1.1], function(res){ assert.equal(res, 0, '1.1 + -1.1 calculation failed'); });
+
+	Smack.api.execute('add', [-1.1,-1.1], function(res){ assert.equal(res, -2.2, '-1.1 + -1.1 calculation failed'); });
+
+	Smack.api.execute('add', [0,-1.1], function(res){ assert.equal(res, -1.1, '0 + -1.1 calculation failed'); });
+
+	Smack.api.execute('add', [1.1,0], function(res){ assert.equal(res, 1.1, '1.1 + 0 calculation failed'); });
+
+
+	Smack.api.execute('sub', [1.1,1.1], function(res){ assert.equal(res, 0, '1.1 - 1.1 calculation failed'); });
+
+	Smack.api.execute('sub', [-1.1,1.1], function(res){ assert.equal(res, -2.2, '-1.1 - 1.1 calculation failed'); });
+
+	Smack.api.execute('sub', [1.1,-1.1], function(res){ assert.equal(res, 2.2, '1.1 - -1.1 calculation failed'); });
+
+	Smack.api.execute('sub', [-1.1,-1.1], function(res){ assert.equal(res, 0, '-1.1 - -1.1 calculation failed'); });
+
+	Smack.api.execute('sub', [0,1.1], function(res){ assert.equal(res, -1.1, '0 - 1.1 calculation failed'); });
+
+	Smack.api.execute('sub', [-1.1,0], function(res){ assert.equal(res, -1.1, '-1.1 - 0 calculation failed'); });
+
+
+	Smack.api.execute('mul', [1,1], function(res){ assert.equal(res, 1, '1 * 1 calculation failed'); });
+
+	Smack.api.execute('mul', [-1,1], function(res){ assert.equal(res, -1, '-1 * 1 calculation failed'); });
+
+	Smack.api.execute('mul', [1,-1], function(res){ assert.equal(res, -1, '1 * -1 calculation failed'); });
+
+	Smack.api.execute('mul', [-1,-1], function(res){ assert.equal(res, 1, '-1 * -1 calculation failed'); });
+
+	Smack.api.execute('mul', [2,0.1], function(res){ assert.equal(res, 0.2, '2 * 0.1 calculation failed'); });
+
+	Smack.api.execute('mul', [1,0], function(res){ assert.equal(res, 0, '1 * 0 calculation failed'); });
+
+	Smack.api.execute('mul', [0,-1], function(res){ assert.equal(res, 0, '0 * -1 calculation failed'); });
+
+
+	Smack.api.execute('div', [1,1], function(res){ assert.equal(res, 1, '1 / 1 calculation failed'); });
+
+	Smack.api.execute('div', [-1,1], function(res){ assert.equal(res, -1, '-1 / 1 calculation failed'); });
+
+	Smack.api.execute('div', [1,-1], function(res){ assert.equal(res, -1, '1 / -1 calculation failed'); });
+
+	Smack.api.execute('div', [-1,-1], function(res){ assert.equal(res, 1, '-1 / -1 calculation failed'); });
+
+	Smack.api.execute('div', [2,0.1], function(res){ assert.equal(res, 20, '2 / 0.1 calculation failed'); });
+
+	Smack.api.execute('div', [1,0], function(res){ assert.equal(res, Infinity, '1 / 0 calculation failed'); });
+
+	Smack.api.execute('div', [-1,0], function(res){ assert.equal(res, -Infinity, '-1 / 0 calculation failed'); });
+
+	Smack.api.execute('div', [0,-1], function(res){ assert.equal(res, 0, '0 / -1 calculation failed'); });
+
+
+	Smack.api.execute('mod', [1,1], function(res){ assert.equal(res, 0, '1 % 1 calculation failed'); });
+
+	Smack.api.execute('mod', [-1,1], function(res){ assert.equal(res, 0, '-1 % 1 calculation failed'); });
+
+	Smack.api.execute('mod', [3,5], function(res){ assert.equal(res, 3, '3 % 5 calculation failed'); });
+
+	Smack.api.execute('mod', [-3,5], function(res){ assert.equal(res, -3, '-3 % 5 calculation failed'); });
+
+	Smack.api.execute('mod', [22,-5], function(res){ assert.equal(res, 2, '22 % -5 calculation failed'); });
+
+	Smack.api.execute('mod', [-22,-5], function(res){ assert.equal(res, -2, '-22 % -5 calculation failed'); });
+
+	Smack.api.execute('mod', [1,0.2], function(res){ assert.equal(res, 0, '1 % 0.2 calculation failed'); });
+
+	Smack.api.execute('mod', [1,0], function(res){ assert.ok(isNaN(res), '1 % 0 calculation failed'); });
+
+	Smack.api.execute('mod', [0,-1], function(res){ assert.equal(res, 0, '0 % -1 calculation failed'); });
+
+
+	Smack.api.execute('pow', [1,1], function(res){ assert.equal(res, 1, '1^1 calculation failed'); });
+
+	Smack.api.execute('pow', [-1,2], function(res){ assert.equal(res, -1, '-1^2 calculation failed'); });
+
+	Smack.api.execute('pow', [2,2], function(res){ assert.equal(res, 4, '2^2 calculation failed'); });
+
+	Smack.api.execute('pow', [1.5,2], function(res){ assert.equal(res, 2.25, '1.5^2 calculation failed'); });
+
+	Smack.api.execute('pow', [4,0.5], function(res){ assert.equal(res, 2, '4^0.5 calculation failed'); });
+
+	Smack.api.execute('pow', [2,-1], function(res){ assert.equal(res, 0.5, '2^-1 calculation failed'); });
+
+	Smack.api.execute('pow', [1,0], function(res){ assert.equal(res, 1, '1^0 calculation failed'); });
+
+	Smack.api.execute('pow', [0,1], function(res){ assert.equal(res, 0, '0^1 calculation failed'); });
+
+	Smack.api.execute('pow', [0,-1], function(res){ assert.equal(res, Infinity, '0^-1 calculation failed'); });
+
+	Smack.api.execute('pow', [-0,-1], function(res){ assert.equal(res, -Infinity, '-0^-1 calculation failed'); });
+
+
+	Smack.api.execute('eq', [1.1,1.1], function(res){ assert.equal(res, true, '1.1 == 1.1 calculation failed'); });
+
+	Smack.api.execute('eq', [1,-1], function(res){ assert.equal(res, false, '1 == -1 calculation failed'); });
+
+
+	Smack.api.execute('neq', [1.1,1.1], function(res){ assert.equal(res, false, '1.1 != 1.1 calculation failed'); });
+
+	Smack.api.execute('neq', [1,-1], function(res){ assert.equal(res, true, '1 != -1 calculation failed'); });
+
+
+	Smack.api.execute('lt', [-2,1], function(res){ assert.equal(res, true, '-2 < 1 calculation failed'); });
+
+	Smack.api.execute('lt', [0, 0], function(res){ assert.equal(res, false, '0 < 0 calculation failed'); });
+
+	Smack.api.execute('lt', [1,-2], function(res){ assert.equal(res, false, '1 < -2 calculation failed'); });
+
+
+	Smack.api.execute('le', [-2,1], function(res){ assert.equal(res, true, '-2 <= 1 calculation failed'); });
+
+	Smack.api.execute('le', [0, 0], function(res){ assert.equal(res, true, '0 <= 0 calculation failed'); });
+
+	Smack.api.execute('le', [1,-2], function(res){ assert.equal(res, false, '1 <= -2 calculation failed'); });
+
+
+	Smack.api.execute('gt', [-2,1], function(res){ assert.equal(res, false, '-2 > 1 calculation failed'); });
+
+	Smack.api.execute('gt', [0, 0], function(res){ assert.equal(res, false, '0 > 0 calculation failed'); });
+
+	Smack.api.execute('gt', [1,-2], function(res){ assert.equal(res, true, '1 > -2 calculation failed'); });
+
+
+	Smack.api.execute('ge', [-2,1], function(res){ assert.equal(res, false, '-2 >= 1 calculation failed'); });
+
+	Smack.api.execute('ge', [0, 0], function(res){ assert.equal(res, false, '0 >= 0 calculation failed'); });
+
+	Smack.api.execute('ge', [1,-2], function(res){ assert.equal(res, true, '1 >= -2 calculation failed'); });
+
 });
