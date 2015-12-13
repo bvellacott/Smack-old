@@ -248,4 +248,355 @@ QUnit.test( "Arithmetics", function( assert ) {
 	Smack.api.execute('powThenPow', [3,3,2], function(res){ assert.equal(res, 19683, '3^3^2 calculation failed'); });
 
 
+	Smack.api.execute('parenAddThenMul', [2,3,4], function(res){ assert.equal(res, 20, '(2 + 3) * 4 calculation failed'); });
+
+	Smack.api.execute('parenAddThenDiv', [2,2,4], function(res){ assert.equal(res, 1, '(2 + 2) / 4 calculation failed'); });
+
+	Smack.api.execute('parenAddThenMod', [2,3,4], function(res){ assert.equal(res, 1, '(2 + 3) % 4 calculation failed'); });
+
+	Smack.api.execute('parenAddThenPow', [1,2,3], function(res){ assert.equal(res, 27, '(1 + 2)^3 calculation failed'); });
+
+
+	Smack.api.execute('parenSubThenMul', [2,3,4], function(res){ assert.equal(res, -4, '(2 - 3) * 4 calculation failed'); });
+
+	Smack.api.execute('parenSubThenDiv', [2,2,4], function(res){ assert.equal(res, -0.25, '(2 - 3) / 4 calculation failed'); });
+
+	Smack.api.execute('parenSubThenMod', [2,3,4], function(res){ assert.equal(res, -1, '(2 - 3) % 4 calculation failed'); });
+
+	Smack.api.execute('parenSubThenPow', [1,3,3], function(res){ assert.equal(res, -8, '(1 - 3)^3 calculation failed'); });
+
+
+	Smack.api.execute('parenMulThenPow', [2,3,4], function(res){ assert.equal(res, 1296, '(2 * 3)^4 calculation failed'); });
+
+	Smack.api.execute('parenDivThenPow', [1,2,3], function(res){ assert.equal(res, 0.0625, '(1 / 2)^4 calculation failed'); });
+
+	Smack.api.execute('parenModThenPow', [2,3,4], function(res){ assert.equal(res, 16, '(2 % 3)^4 calculation failed'); });
+	
+
+	Smack.api.execute('parenPowThenPow', [2,1,3], function(res){ assert.equal(res, 8, '(2^1)^3 calculation failed'); });
+
+
+	Smack.api.execute('addEqAdd', [1,1,2,0], function(res){ assert.equal(res, true, '1 + 1 == 2 + 0 calculation failed'); });
+
+	Smack.api.execute('addEqAdd', [1,1,1,2], function(res){ assert.equal(res, false, '1 + 1 == 1 + 2 calculation failed'); });
+
+
+	Smack.api.execute('addNeqAdd', [1,1,2,0], function(res){ assert.equal(res, false, '1 + 1 != 2 + 0 calculation failed'); });
+
+	Smack.api.execute('addNeqAdd', [1,1,1,2], function(res){ assert.equal(res, true, '1 + 1 != 1 + 2 calculation failed'); });
+
+
+	Smack.api.execute('addLtAdd', [1,1,2,1], function(res){ assert.equal(res, true, '1 + 1 < 2 + 1 calculation failed'); });
+
+	Smack.api.execute('addLtAdd', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 + -1 < 1 + 0 calculation failed'); });
+
+	Smack.api.execute('addLtAdd', [1,1,2,0], function(res){ assert.equal(res, false, '1 + 1 < 2 + 0 calculation failed'); });
+
+	Smack.api.execute('addLtAdd', [1,1,1,0], function(res){ assert.equal(res, false, '1 + 1 < 1 + 0 calculation failed'); });
+
+	Smack.api.execute('addLtAdd', [1,1,-1,-2], function(res){ assert.equal(res, false, '1 + 1 < -1 + -2 calculation failed'); });
+
+
+	Smack.api.execute('addLeAdd', [1,1,2,1], function(res){ assert.equal(res, true, '1 + 1 <= 2 + 1 calculation failed'); });
+
+	Smack.api.execute('addLeAdd', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 + -1 <= 1 + 0 calculation failed'); });
+
+	Smack.api.execute('addLeAdd', [1,1,2,0], function(res){ assert.equal(res, true, '1 + 1 <= 2 + 0 calculation failed'); });
+
+	Smack.api.execute('addLeAdd', [1,1,1,0], function(res){ assert.equal(res, false, '1 + 1 <= 1 + 0 calculation failed'); });
+
+	Smack.api.execute('addLeAdd', [1,1,-1,-2], function(res){ assert.equal(res, false, '1 + 1 <= -1 + -2 calculation failed'); });
+
+
+	Smack.api.execute('addGtAdd', [1,1,2,1], function(res){ assert.equal(res, false, '1 + 1 > 2 + 1 calculation failed'); });
+
+	Smack.api.execute('addGtAdd', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 + -1 > 1 + 0 calculation failed'); });
+
+	Smack.api.execute('addGtAdd', [1,1,2,0], function(res){ assert.equal(res, false, '1 + 1 > 2 + 0 calculation failed'); });
+
+	Smack.api.execute('addGtAdd', [1,1,1,0], function(res){ assert.equal(res, true, '1 + 1 > 1 + 0 calculation failed'); });
+
+	Smack.api.execute('addGtAdd', [1,1,-1,-2], function(res){ assert.equal(res, true, '1 + 1 > -1 + -2 calculation failed'); });
+
+
+	Smack.api.execute('addGeAdd', [1,1,2,1], function(res){ assert.equal(res, false, '1 + 1 >= 2 + 1 calculation failed'); });
+
+	Smack.api.execute('addGeAdd', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 + -1 >= 1 + 0 calculation failed'); });
+
+	Smack.api.execute('addGeAdd', [1,1,2,0], function(res){ assert.equal(res, true, '1 + 1 >= 2 + 0 calculation failed'); });
+
+	Smack.api.execute('addGeAdd', [1,1,1,0], function(res){ assert.equal(res, true, '1 + 1 >= 1 + 0 calculation failed'); });
+
+	Smack.api.execute('addGeAdd', [1,1,-1,-2], function(res){ assert.equal(res, true, '1 + 1 >= -1 + -2 calculation failed'); });
+
+
+	Smack.api.execute('subEqSub', [1,1,2,0], function(res){ assert.equal(res, true, '1 - 1 == 2 - 0 calculation failed'); });
+
+	Smack.api.execute('subEqSub', [1,1,1,2], function(res){ assert.equal(res, false, '1 - 1 == 1 - 2 calculation failed'); });
+
+
+	Smack.api.execute('subNeqSub', [1,1,2,0], function(res){ assert.equal(res, false, '1 - 1 != 2 - 0 calculation failed'); });
+
+	Smack.api.execute('subNeqSub', [1,1,1,2], function(res){ assert.equal(res, true, '1 - 1 != 1 - 2 calculation failed'); });
+
+
+	Smack.api.execute('subLtSub', [1,1,2,1], function(res){ assert.equal(res, true, '1 - 1 < 2 - 1 calculation failed'); });
+
+	Smack.api.execute('subLtSub', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 - -1 < 1 - 0 calculation failed'); });
+
+	Smack.api.execute('subLtSub', [1,1,2,0], function(res){ assert.equal(res, false, '1 - 1 < 2 - 0 calculation failed'); });
+
+	Smack.api.execute('subLtSub', [1,1,1,0], function(res){ assert.equal(res, false, '1 - 1 < 1 - 0 calculation failed'); });
+
+	Smack.api.execute('subLtSub', [1,1,-1,-2], function(res){ assert.equal(res, false, '1 - 1 < -1 - -2 calculation failed'); });
+
+
+	Smack.api.execute('subLeSub', [1,1,2,1], function(res){ assert.equal(res, true, '1 - 1 <= 2 - 1 calculation failed'); });
+
+	Smack.api.execute('subLeSub', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 - -1 <= 1 - 0 calculation failed'); });
+
+	Smack.api.execute('subLeSub', [1,1,2,0], function(res){ assert.equal(res, true, '1 - 1 <= 2 - 0 calculation failed'); });
+
+	Smack.api.execute('subLeSub', [1,1,1,0], function(res){ assert.equal(res, false, '1 - 1 <= 1 - 0 calculation failed'); });
+
+	Smack.api.execute('subLeSub', [1,1,-1,-2], function(res){ assert.equal(res, false, '1 - 1 <= -1 - -2 calculation failed'); });
+
+
+	Smack.api.execute('subGtSub', [1,1,2,1], function(res){ assert.equal(res, false, '1 - 1 > 2 - 1 calculation failed'); });
+
+	Smack.api.execute('subGtSub', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 - -1 > 1 - 0 calculation failed'); });
+
+	Smack.api.execute('subGtSub', [1,1,2,0], function(res){ assert.equal(res, false, '1 - 1 > 2 - 0 calculation failed'); });
+
+	Smack.api.execute('subGtSub', [1,1,1,0], function(res){ assert.equal(res, true, '1 - 1 > 1 - 0 calculation failed'); });
+
+	Smack.api.execute('subGtSub', [1,1,-1,-2], function(res){ assert.equal(res, true, '1 - 1 > -1 - -2 calculation failed'); });
+
+
+	Smack.api.execute('subGeSub', [1,1,2,1], function(res){ assert.equal(res, false, '1 - 1 >= 2 - 1 calculation failed'); });
+
+	Smack.api.execute('subGeSub', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 - -1 >= 1 - 0 calculation failed'); });
+
+	Smack.api.execute('subGeSub', [1,1,2,0], function(res){ assert.equal(res, true, '1 - 1 >= 2 - 0 calculation failed'); });
+
+	Smack.api.execute('subGeSub', [1,1,1,0], function(res){ assert.equal(res, true, '1 - 1 >= 1 - 0 calculation failed'); });
+
+	Smack.api.execute('subGeSub', [1,1,-1,-2], function(res){ assert.equal(res, true, '1 - 1 >= -1 - -2 calculation failed'); });
+
+
+	Smack.api.execute('mulEqMul', [1,1,1,1], function(res){ assert.equal(res, true, '1 * 1 == 1 * 1 calculation failed'); });
+
+	Smack.api.execute('mulEqMul', [1,1,1,2], function(res){ assert.equal(res, false, '1 * 1 == 1 * 2 calculation failed'); });
+
+
+	Smack.api.execute('mulNeqMul', [1,1,1,1], function(res){ assert.equal(res, false, '1 * 1 != 1 * 1 calculation failed'); });
+
+	Smack.api.execute('mulNeqMul', [1,1,1,2], function(res){ assert.equal(res, true, '1 * 1 != 1 * 2 calculation failed'); });
+
+
+	Smack.api.execute('mulLtMul', [1,1,2,1], function(res){ assert.equal(res, true, '1 * 1 < 2 * 1 calculation failed'); });
+
+	Smack.api.execute('mulLtMul', [-1,1,1,0], function(res){ assert.equal(res, true, '-1 * 1 < 1 * 0 calculation failed'); });
+
+	Smack.api.execute('mulLtMul', [1,1,1,1], function(res){ assert.equal(res, false, '1 * 1 < 1 * 1 calculation failed'); });
+
+	Smack.api.execute('mulLtMul', [1,1,-1,2], function(res){ assert.equal(res, false, '1 * 1 < -1 * 2 calculation failed'); });
+
+	Smack.api.execute('mulLtMul', [1,2,1,1], function(res){ assert.equal(res, false, '1 * 1 < -1 * -2 calculation failed'); });
+
+
+	Smack.api.execute('mulLeMul', [1,1,2,1], function(res){ assert.equal(res, true, '1 * 1 <= 2 * 1 calculation failed'); });
+
+	Smack.api.execute('mulLeMul', [-1,1,1,0], function(res){ assert.equal(res, true, '-1 * 1 <= 1 * 0 calculation failed'); });
+
+	Smack.api.execute('mulLeMul', [1,1,1,1], function(res){ assert.equal(res, true, '1 * 1 <= 1 * 1 calculation failed'); });
+
+	Smack.api.execute('mulLeMul', [1,1,-1,2], function(res){ assert.equal(res, false, '1 * 1 <= -1 * 2 calculation failed'); });
+
+	Smack.api.execute('mulLeMul', [1,2,1,1], function(res){ assert.equal(res, false, '1 * 2 <= 1 * 1 calculation failed'); });
+
+
+	Smack.api.execute('mulGtMul', [1,1,2,1], function(res){ assert.equal(res, false, '1 * 1 > 2 * 1 calculation failed'); });
+
+	Smack.api.execute('mulGtMul', [-1,1,1,0], function(res){ assert.equal(res, false, '-1 * 1 > 1 * 0 calculation failed'); });
+
+	Smack.api.execute('mulGtMul', [1,1,1,1], function(res){ assert.equal(res, false, '1 * 1 > 1 * 1 calculation failed'); });
+
+	Smack.api.execute('mulGtMul', [1,1,-1,2], function(res){ assert.equal(res, true, '1 * 1 > -1 * 2 calculation failed'); });
+
+	Smack.api.execute('mulGtMul', [1,2,1,1], function(res){ assert.equal(res, true, '1 * 2 > 1 * 1 calculation failed'); });
+
+
+	Smack.api.execute('mulGeMul', [1,1,2,1], function(res){ assert.equal(res, false, '1 * 1 >= 2 * 1 calculation failed'); });
+
+	Smack.api.execute('mulGeMul', [-1,1,1,0], function(res){ assert.equal(res, false, '-1 * 1 >= 1 * 0 calculation failed'); });
+
+	Smack.api.execute('mulGeMul', [1,1,1,1], function(res){ assert.equal(res, true, '1 * 1 >= 1 * 1 calculation failed'); });
+
+	Smack.api.execute('mulGeMul', [1,1,-1,2], function(res){ assert.equal(res, true, '1 * 1 >= -1 * 2 calculation failed'); });
+
+	Smack.api.execute('mulGeMul', [1,2,1,1], function(res){ assert.equal(res, true, '1 * 2 >= 1 * 1 calculation failed'); });
+
+
+	Smack.api.execute('divEqDiv', [1,1,1,1], function(res){ assert.equal(res, true, '1 / 1 == 1 / 1 calculation failed'); });
+
+	Smack.api.execute('divEqDiv', [1,1,1,2], function(res){ assert.equal(res, false, '1 / 1 == 1 / 2 calculation failed'); });
+
+
+	Smack.api.execute('divNeqDiv', [1,1,1,1], function(res){ assert.equal(res, false, '1 / 1 != 1 / 1 calculation failed'); });
+
+	Smack.api.execute('divNeqDiv', [1,1,1,2], function(res){ assert.equal(res, true, '1 / 1 != 1 / 2 calculation failed'); });
+
+
+	Smack.api.execute('divLtDiv', [1,1,2,1], function(res){ assert.equal(res, true, '1 / 1 < 2 / 1 calculation failed'); });
+
+	Smack.api.execute('divLtDiv', [-1,1,1,0], function(res){ assert.equal(res, true, '-1 / 1 < 1 / 0 calculation failed'); });
+
+	Smack.api.execute('divLtDiv', [1,1,1,1], function(res){ assert.equal(res, false, '1 / 1 < 1 / 1 calculation failed'); });
+
+	Smack.api.execute('divLtDiv', [1,1,-1,2], function(res){ assert.equal(res, false, '1 / 1 < -1 / 2 calculation failed'); });
+
+	Smack.api.execute('divLtDiv', [1,2,1,1], function(res){ assert.equal(res, false, '1 / 1 < -1 / -2 calculation failed'); });
+
+
+	Smack.api.execute('divLeDiv', [1,1,2,1], function(res){ assert.equal(res, true, '1 / 1 <= 2 / 1 calculation failed'); });
+
+	Smack.api.execute('divLeDiv', [-1,1,1,0], function(res){ assert.equal(res, true, '-1 / 1 <= 1 / 0 calculation failed'); });
+
+	Smack.api.execute('divLeDiv', [1,1,1,1], function(res){ assert.equal(res, true, '1 / 1 <= 1 / 1 calculation failed'); });
+
+	Smack.api.execute('divLeDiv', [1,1,-1,2], function(res){ assert.equal(res, false, '1 / 1 <= -1 / 2 calculation failed'); });
+
+	Smack.api.execute('divLeDiv', [1,2,1,1], function(res){ assert.equal(res, false, '1 / 2 <= 1 / 1 calculation failed'); });
+
+
+	Smack.api.execute('divGtDiv', [1,1,2,1], function(res){ assert.equal(res, false, '1 / 1 > 2 / 1 calculation failed'); });
+
+	Smack.api.execute('divGtDiv', [-1,1,1,0], function(res){ assert.equal(res, false, '-1 / 1 > 1 / 0 calculation failed'); });
+
+	Smack.api.execute('divGtDiv', [1,1,1,1], function(res){ assert.equal(res, false, '1 / 1 > 1 / 1 calculation failed'); });
+
+	Smack.api.execute('divGtDiv', [1,1,-1,2], function(res){ assert.equal(res, true, '1 / 1 > -1 / 2 calculation failed'); });
+
+	Smack.api.execute('divGtDiv', [1,2,1,1], function(res){ assert.equal(res, true, '1 / 2 > 1 / 1 calculation failed'); });
+
+
+	Smack.api.execute('divGeDiv', [1,1,2,1], function(res){ assert.equal(res, false, '1 / 1 >= 2 / 1 calculation failed'); });
+
+	Smack.api.execute('divGeDiv', [-1,1,1,0], function(res){ assert.equal(res, false, '-1 / 1 >= 1 / 0 calculation failed'); });
+
+	Smack.api.execute('divGeDiv', [1,1,1,1], function(res){ assert.equal(res, true, '1 / 1 >= 1 / 1 calculation failed'); });
+
+	Smack.api.execute('divGeDiv', [1,1,-1,2], function(res){ assert.equal(res, true, '1 / 1 >= -1 / 2 calculation failed'); });
+
+	Smack.api.execute('divGeDiv', [1,2,1,1], function(res){ assert.equal(res, true, '1 / 2 >= 1 / 1 calculation failed'); });
+
+
+	Smack.api.execute('modEqMod', [1,1,1,1], function(res){ assert.equal(res, true, '1 % 1 == 1 % 1 calculation failed'); });
+
+	Smack.api.execute('modEqMod', [1,1,1,2], function(res){ assert.equal(res, false, '1 % 1 == 1 % 2 calculation failed'); });
+
+
+	Smack.api.execute('modNeqMod', [1,1,1,1], function(res){ assert.equal(res, false, '1 % 1 != 1 % 1 calculation failed'); });
+
+	Smack.api.execute('modNeqMod', [1,1,1,2], function(res){ assert.equal(res, true, '1 % 1 != 1 % 2 calculation failed'); });
+
+
+	Smack.api.execute('modLtMod', [1,1,1,2], function(res){ assert.equal(res, true, '1 % 1 < 1 % 2 calculation failed'); });
+
+	Smack.api.execute('modLtMod', [-1,1,1,2], function(res){ assert.equal(res, true, '-1 % 1 < 1 % 2 calculation failed'); });
+
+	Smack.api.execute('modLtMod', [1,1,1,1], function(res){ assert.equal(res, false, '1 % 1 < 1 % 1 calculation failed'); });
+
+	Smack.api.execute('modLtMod', [1,1,-1,2], function(res){ assert.equal(res, false, '1 % 1 < -1 % 2 calculation failed'); });
+
+	Smack.api.execute('modLtMod', [1,2,1,1], function(res){ assert.equal(res, false, '1 % 2 < 1 % 1 calculation failed'); });
+
+
+	Smack.api.execute('modLeMod', [1,1,1,2], function(res){ assert.equal(res, true, '1 % 1 <= 1 % 2 calculation failed'); });
+
+	Smack.api.execute('modLeMod', [-1,1,1,2], function(res){ assert.equal(res, true, '-1 % 1 <= 1 % 2 calculation failed'); });
+
+	Smack.api.execute('modLeMod', [1,1,1,1], function(res){ assert.equal(res, true, '1 % 1 <= 1 % 1 calculation failed'); });
+
+	Smack.api.execute('modLeMod', [1,1,-1,2], function(res){ assert.equal(res, false, '1 % 1 <= -1 % 2 calculation failed'); });
+
+	Smack.api.execute('modLeMod', [1,2,1,1], function(res){ assert.equal(res, false, '1 % 2 <= 1 % 1 calculation failed'); });
+
+
+	Smack.api.execute('modGtMod', [1,1,1,2], function(res){ assert.equal(res, false, '1 % 1 > 1 % 2 calculation failed'); });
+
+	Smack.api.execute('modGtMod', [-1,1,1,2], function(res){ assert.equal(res, false, '-1 % 1 > 1 % 2 calculation failed'); });
+
+	Smack.api.execute('modGtMod', [1,1,1,1], function(res){ assert.equal(res, false, '1 % 1 > 1 % 1 calculation failed'); });
+
+	Smack.api.execute('modGtMod', [1,1,-1,2], function(res){ assert.equal(res, true, '1 % 1 > -1 % 2 calculation failed'); });
+
+	Smack.api.execute('modGtMod', [1,2,1,1], function(res){ assert.equal(res, true, '1 % 2 > 1 % 1 calculation failed'); });
+
+
+	Smack.api.execute('modGeMod', [1,1,1,2], function(res){ assert.equal(res, false, '1 % 1 <= 1 % 2 calculation failed'); });
+
+	Smack.api.execute('modGeMod', [-1,1,1,2], function(res){ assert.equal(res, false, '-1 % 1 <= 1 % 2 calculation failed'); });
+
+	Smack.api.execute('modGeMod', [1,1,1,1], function(res){ assert.equal(res, true, '1 % 1 >= 1 % 1 calculation failed'); });
+
+	Smack.api.execute('modGeMod', [1,1,-1,2], function(res){ assert.equal(res, true, '1 % 1 >= -1 % 2 calculation failed'); });
+
+	Smack.api.execute('modGeMod', [1,2,1,1], function(res){ assert.equal(res, true, '1 % 2 >= 1 % 1 calculation failed'); });
+
+
+	Smack.api.execute('powEqPow', [1,1,1,1], function(res){ assert.equal(res, true, '1^1 == 1^1 calculation failed'); });
+
+	Smack.api.execute('powEqPow', [1,1,2,1], function(res){ assert.equal(res, false, '1^1 == 1^2 calculation failed'); });
+
+
+	Smack.api.execute('powNeqPow', [1,1,1,1], function(res){ assert.equal(res, false, '1^1 != 1^1 calculation failed'); });
+
+	Smack.api.execute('powNeqPow', [1,1,2,1], function(res){ assert.equal(res, true, '1^1 != 1^2 calculation failed'); });
+
+
+	Smack.api.execute('powLtPow', [1,1,2,1], function(res){ assert.equal(res, true, '1^1 < 1^2 calculation failed'); });
+
+	Smack.api.execute('powLtPow', [-1,1,1,2], function(res){ assert.equal(res, true, '-1^1 < 1^2 calculation failed'); });
+
+	Smack.api.execute('powLtPow', [1,1,1,1], function(res){ assert.equal(res, false, '1^1 < 1^1 calculation failed'); });
+
+	Smack.api.execute('powLtPow', [1,1,-2,2], function(res){ assert.equal(res, false, '1^1 < -2^2 calculation failed'); });
+
+	Smack.api.execute('powLtPow', [2,1,1,1], function(res){ assert.equal(res, false, '2^1 < 1^1 calculation failed'); });
+
+
+	Smack.api.execute('powLePow', [1,1,2,1], function(res){ assert.equal(res, true, '1^1 <= 1^2 calculation failed'); });
+
+	Smack.api.execute('powLePow', [-1,1,1,2], function(res){ assert.equal(res, true, '-1^1 <= 1^2 calculation failed'); });
+
+	Smack.api.execute('powLePow', [1,1,1,1], function(res){ assert.equal(res, true, '1^1 <= 1^1 calculation failed'); });
+
+	Smack.api.execute('powLePow', [1,1,-2,2], function(res){ assert.equal(res, false, '1^1 <= -2^2 calculation failed'); });
+
+	Smack.api.execute('powLePow', [2,1,1,1], function(res){ assert.equal(res, false, '2^1 <= 1^1 calculation failed'); });
+
+
+	Smack.api.execute('powGtPow', [1,1,2,1], function(res){ assert.equal(res, false, '1^1 > 1^2 calculation failed'); });
+
+	Smack.api.execute('powGtPow', [-1,1,1,2], function(res){ assert.equal(res, false, '-1^1 > 1^2 calculation failed'); });
+
+	Smack.api.execute('powGtPow', [1,1,1,1], function(res){ assert.equal(res, false, '1^1 > 1^1 calculation failed'); });
+
+	Smack.api.execute('powGtPow', [1,1,-2,2], function(res){ assert.equal(res, true, '1^1 > -2^2 calculation failed'); });
+
+	Smack.api.execute('powGtPow', [2,1,1,1], function(res){ assert.equal(res, true, '2^1 > 1^1 calculation failed'); });
+
+
+	Smack.api.execute('powGePow', [1,1,2,1], function(res){ assert.equal(res, false, '1^1 <= 1^2 calculation failed'); });
+
+	Smack.api.execute('powGePow', [-1,1,1,2], function(res){ assert.equal(res, false, '-1^1 <= 1^2 calculation failed'); });
+
+	Smack.api.execute('powGePow', [1,1,1,1], function(res){ assert.equal(res, true, '1^1 >= 1^1 calculation failed'); });
+
+	Smack.api.execute('powGePow', [1,1,-2,2], function(res){ assert.equal(res, true, '1^1 >= -2^2 calculation failed'); });
+
+	Smack.api.execute('powGePow', [2,1,1,1], function(res){ assert.equal(res, true, '2^1 >= 1^1 calculation failed'); });
+
 });
