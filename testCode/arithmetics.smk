@@ -1,4 +1,4 @@
-pack tstArithmetic;
+pack tst;
 
 func add(a, b) { ret a + b; }
 
