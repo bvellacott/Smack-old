@@ -1,29 +1,62 @@
 var Smack = {};
 
+
+Smack.browserServer = (function(){
+	
+})();
+	
 Smack.api = (function($) {
 	var connections = {};
+	var executeAllSync = false;
+	var syncUris = {'/compile' : true, '/delete' : true, '/deleteall' : true, };
+	var pendingUri = undefined;
+	var queue = [];
 	
 	connections.test = {
-		request : function(uri, headers, body, cb) {
-			this.requests.push({ url : this.host + uri, headers : headers, body : body });
+		session : undefined,
+		host : 'tst.com',
+		request : function(data) {
+			this.requests.push({ url : this.host + data.uri, headers : data.headers, body : data.body });
 			console.log('Last request data : ' + this.getLatestRequest());
-			if(cb) cb({});
+			if(data.cb) data.cb({});
 		},
 		requests : [],
 		getLatestRequest : function() { return this.requests[this.requests.length-1] },
 	};
-	
+		
 	return {
 		call : function(connection, uri, body, cb) {
 			var con = this.getConnection(connection);
-			con.request(uri, {
-				'content-type' : 'application/json', 
-				session : (con.sessionId ? con.sessionId : '')
-			}, body, function(response) {
-				if(response.err)
-					throw err;
-				if(cb) cb(response.result)
-			});
+			var data = {
+				con : con,
+				uri : uri, 
+				headers : {
+					'content-type' : 'application/json', 
+					session : (con.sessionId ? con.sessionId : '')
+				},
+				body : body, 
+				cb : function(response) {
+					if(response.err) throw err;
+					if(cb) cb(response.result)
+					pendingUri = undefined;
+					if(queue.length > 0) {
+						var data = queue.shift();
+						data.con.request(data);
+					}
+						
+				},
+			};
+			if((executeAllSync && pendingUri) || syncUris[pendingUri] || (syncUris[uri] && pendingUri))
+				queue.push(data);
+			else {
+				try {
+					pendingUri = uri;
+					con.request(data);
+				} catch(e) {
+					pendingUri = undefined;
+					throw e;
+				}
+			}
 		},
 		compile : function(connection, units, cb) {
 			this.call(connection, '/compile', units, cb)
@@ -57,6 +90,9 @@ Smack.api = (function($) {
 		},
 		closeConnection : function(name) {
 			throw 'Not implemented';
+		},
+		setExecuteAllSync : function(inSync) {
+			executeAllSync = inSync;
 		},
 	}
 })($);

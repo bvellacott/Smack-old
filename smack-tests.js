@@ -673,6 +673,7 @@ QUnit.test( "Arithmetics", function( assert ) {
 
 	Smack.api.execute('browser', 'tst.powGePow', [2,1,1,1], function(res){ assert.equal(res, true, '2^1 >= 1^1 calculation failed'); });
 
+	Smack.api.delAll('browser');
 });
 
 QUnit.test( "Assign", function( assert ) {
@@ -712,4 +713,12 @@ QUnit.test( "While and exec()", function( assert ) {
 
 	Smack.api.execute('browser', 'tst.callWithInput', ['addOneWhileLessThan', [10000]], function(res){ assert.equal(res, 10000, 'Exec test failed'); });
 
+});
+
+Qunit.test('sync/async', function( assert ){
+	var source;
+	Papu.getFileContents('testCode/wait.smk', function(res){ source = res; });
+	console.log(source);
+	Smack.api.compile('browser', source);
+	// todo !!
 });
