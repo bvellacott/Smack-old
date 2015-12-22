@@ -26,12 +26,6 @@ Smack.api = (function($) {
 		if(data.cb) data.cb({});
 	}
 	
-	var browserRequestHandler = function(data) {
-		this.latestRequest = { url : this.host + data.uri, headers : data.headers, body : data.body };
-		// todo
-		if(data.cb) data.cb({});
-	}
-	
 	return {
 		call : function(connection, uri, headers, body, cb) {
 			var con = this.getConnection(connection);
@@ -94,7 +88,7 @@ Smack.api = (function($) {
 			if(host == 'tst.com')
 				con = newConnection(name, host, testRequestHandler);
 			else if(host == 'browser')
-				con = newConnection(name, host, browserRequestHandler);
+				con = newConnection(name, host, Smack.browserRequestHandler);
 			else {
 				con = newConnection(name, host, function(data) {
 					throw 'Not implemented';
@@ -133,3 +127,27 @@ Smack.api = (function($) {
 		},
 	}
 })($);
+
+Smack.bserver = (function(){
+	var compile = function(source) {
+		throw 'Not implemented';
+	}	
+	
+	return {
+		connect : function() { throw 'Not implemented'; },
+		close : function() { throw 'Not implemented'; },
+		compile : function() { throw 'Not implemented'; },
+		del : function() { throw 'Not implemented'; },
+		delAll : function() { throw 'Not implemented'; },
+		get : function() { throw 'Not implemented'; },
+		getNames : function() { throw 'Not implemented'; },
+		execute : function() { throw 'Not implemented'; },
+	};
+})();
+
+Smack.browserRequestHandler = function(data) {
+	this.latestRequest = { url : this.host + data.uri, headers : data.headers, body : data.body };
+	
+	if(data.cb) data.cb({});
+}
+
