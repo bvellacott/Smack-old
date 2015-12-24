@@ -5,19 +5,23 @@ var Smack = {};
 
 Smack.api = (function($) {
 	var connections = {};
-	var executeAllSync = false;
 	var syncUris = {'/compile' : true, '/delete' : true, '/deleteall' : true, };
-	var pendingUri = undefined;
-	var queue = [];
-	
+
 	var newConnection = function(name, host, requester) {
 		return {
-			session : undefined,
+			sessionId : undefined,
 			name : name,
 			host : host,
 			latestRequest : undefined,
+			executeAllSync : false,
 			request : requester,
+			queue : [],
+			pendingUri : undefined,
 		};
+	}
+	
+	var requestHandler = function(data) {
+		throw 'Request handler not implemented';
 	}
 	
 	var testRequestHandler = function(data) {
@@ -38,24 +42,24 @@ Smack.api = (function($) {
 				}, headers),
 				body : body, 
 				cb : function(response) {
-					if(response.err) throw err;
+					if(response.err) throw response.err;
 					if(cb) cb(response.result)
-					pendingUri = undefined;
-					if(queue.length > 0) {
-						var data = queue.shift();
+					con.pendingUri = undefined;
+					if(con.queue.length > 0) {
+						var data = con.queue.shift();
 						data.con.request(data);
 					}
 						
 				},
 			};
-			if((executeAllSync && pendingUri) || syncUris[pendingUri] || (syncUris[uri] && pendingUri))
-				queue.push(data);
+			if((con.executeAllSync && con.pendingUri) || syncUris[con.pendingUri] || (syncUris[uri] && con.pendingUri))
+				con.queue.push(data);
 			else {
 				try {
-					pendingUri = uri;
+					con.pendingUri = uri;
 					con.request(data);
 				} catch(e) {
-					pendingUri = undefined;
+					con.pendingUri = undefined;
 					throw e;
 				}
 			}
@@ -89,15 +93,13 @@ Smack.api = (function($) {
 				con = newConnection(name, host, testRequestHandler);
 			else if(host == 'browser')
 				con = newConnection(name, host, Smack.browserRequestHandler);
-			else {
-				con = newConnection(name, host, function(data) {
-					throw 'Not implemented';
-					this.latestRequest = { url : this.host + data.uri, headers : data.headers, body : data.body };
-					if(data.cb) data.cb({});
-				});
-			}
+			else
+				con = newConnection(name, host, requestHandler);
 			connections[name] = con;
-			this.call(name, '/connect', {uname : uname, passw : passw}, undefined, cb);
+			this.call(name, '/connect', {uname : uname, passw : passw}, undefined, function(data) {
+				con.sessionId = data;
+				if(cb) cb({});
+			});
 		},
 		hasConnection : function(name) {
 			return (connections[name] ? true : false);
@@ -122,9 +124,6 @@ Smack.api = (function($) {
 				if(cb) cb();
 			});
 		},
-		setExecuteAllSync : function(inSync) {
-			executeAllSync = inSync;
-		},
 	}
 })($);
 
@@ -147,7 +146,64 @@ Smack.bserver = (function(){
 
 Smack.browserRequestHandler = function(data) {
 	this.latestRequest = { url : this.host + data.uri, headers : data.headers, body : data.body };
-	
-	if(data.cb) data.cb({});
+	var response;
+	if(data.uri === '/connect') {
+		try {
+			Smack.bserver.connect(data.headers.uname, data.headers.passw, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/close') {
+		try {
+			Smack.bserver.close(function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/compile') {
+		try {
+			Smack.bserver.compile(data.body, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/delete') {
+		try {
+			Smack.bserver.del(data.body, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/deleteAll') {
+		try {
+			Smack.bserver.del(function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/get') {
+		try {
+			Smack.bserver.get(data.body, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/getNames') {
+		try {
+			Smack.bserver.getNames(data.body, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/execute') {
+		try {
+			Smack.bserver.execute(data.body.names, data.body.args, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else
+		throw 'Invalid uri';
 }
 

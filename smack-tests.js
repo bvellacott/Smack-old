@@ -24,7 +24,7 @@ if(!Smack)
 	throw 'Smack is required';
 Smack.tests = {};
 
-Smack.tests.testApi = function() {
+Smack.tests.testApi = function(tstCb) {
 	QUnit.test( "Connections", function( assert ) {
 		var cbCalled = false;
 		var cb = function() { cbCalled = true; };
@@ -184,12 +184,12 @@ Smack.tests.testApi = function() {
 };
 
 Smack.tests.testHost = function(conName, host, uName, pWord) {
-	Smack.api.createConnection('test', 'tst.com', 'user', 'pass123', function() {
+	Smack.api.createConnection(conName, host, 'user', 'pass123', function() {
 		QUnit.test( "Arithmetics", function( assert ) {
 			var source;
 			Papu.getFileContents('testCode/arithmetics.smk', function(res){ source = res; });
 			console.log(source);
-			Smack.api.compile(conName, source);
+			Smack.api.compile(conName, {arithmetics : source});
 		
 			Smack.api.execute(conName, 'tst.add', [1.1,1.1], function(res){ assert.equal(res, 2.2, '1.1 + 1.1 calculation failed'); });
 		
@@ -772,16 +772,18 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 			var source;
 			Papu.getFileContents('testCode/varAssign.smk', function(res){ source = res; });
 			console.log(source);
-			Smack.api.compile(conName, source);
+			Smack.api.compile(conName, {varAssign : source});
 		
 			Smack.api.execute(conName, 'tst.assingAndCompare', [1.1, 2.2], function(res){ assert.equal(res, true, 'Variable assign calculation failed'); });
+			
+			Smack.api.delAll(conName);
 		});
 		
 		QUnit.test( "If Else", function( assert ) {
 			var source;
 			Papu.getFileContents('testCode/ifElse.smk', function(res){ source = res; });
 			console.log(source);
-			Smack.api.compile(conName, source);
+			Smack.api.compile(conName, {ifElse : source});
 		
 			Smack.api.execute(conName, 'tst.ifOneElseIfTwoElse', [1], function(res){ assert.equal(res, 1, 'If part of if else if else failed'); });
 		
@@ -792,27 +794,202 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 			Smack.api.execute(conName, 'tst.ifOneElse', [1], function(res){ assert.equal(res, 1, 'If part of if else failed'); });
 		
 			Smack.api.execute(conName, 'tst.ifOneElse', [2], function(res){ assert.equal(res, false, 'Else part of if else failed'); });
-		
+			
+			Smack.api.delAll(conName);
 		});
 		
 		QUnit.test( "While and exec()", function( assert ) {
 			var source;
 			Papu.getFileContents('testCode/while.smk', function(res){ source = res; });
 			console.log(source);
-			Smack.api.compile(conName, source);
+			Smack.api.compile(conName, {'while' : source});
 		
 			Smack.api.execute(conName, 'tst.addOneWhileLessThan', [10000], function(res){ assert.equal(res, 10000, 'While loop test failed'); });
 		
 			Smack.api.execute(conName, 'tst.callWithInput', ['addOneWhileLessThan', [10000]], function(res){ assert.equal(res, 10000, 'Exec test failed'); });
-		
+			
+			Smack.api.delAll(conName);
 		});
 		
-		Qunit.test('sync/async', function( assert ){
-			var source;
-			Papu.getFileContents('testCode/wait.smk', function(res){ source = res; });
-			console.log(source);
-			Smack.api.compile(conName, source);
-			// todo !!
+		Qunit.test('async calls', function( assert ){
+			Papu.getFileContents('testCode/small.smk', function(res) { 
+				var source = res; 
+
+				// async
+				this.getConnection(conName).executeAllSync = false;
+				
+				var wait0Complete = false;
+				var wait100Complete = false;
+				
+				Smack.api.execute(conName, 'wait', [100], function(res) { 
+					wait100Complete = true;
+					assert.ok(wait0Complete, "wait(0) should have completed before wait(100) execution");
+				});
+				
+				Smack.api.execute(conName, 'wait', [0], function(res) { wait0Complete = true; });
+				
+				wait0Complete = false;
+				var compileComplete = false;
+				wait100Complete = false;
+				
+				Smack.api.execute(conName, 'wait', [100], function(res) { 
+					wait100Complete = true;
+					assert.ok(!compileComplete, "Compilation shouldn't have completed before wait(100) execution");
+				});
+				
+				Smack.api.compile(conName, {small : source}, function(res) { compileComplete = true; });
+				
+				Smack.api.execute(conName, 'wait', [0], function(res) { 
+					wait0Complete = true;
+					assert.ok(compileComplete, "Compilation should have completed before wait(0) execution");
+				});
+				
+				getComplete = false;
+				wait100Complete = false;
+				
+				Smack.api.execute(conName, 'wait', [100], function(res) {
+					wait100Complete = true;
+					assert.ok(getComplete, "Get should have completed before wait(100) execution");
+				});
+				
+				Smack.api.get(conName, ['small'], function(res) { getComplete = true; });
+
+				getNamesComplete = false;
+				wait100Complete = false;
+				
+				Smack.api.execute(conName, 'wait', [100], function(res) {
+					wait100Complete = true;
+					assert.ok(getNamesComplete, "Get names should have completed before wait(100) execution");
+				});
+				
+				Smack.api.getNames(conName, ['small'], function(res) { getNamesComplete = true; });
+
+				wait0Complete = false;
+				delComplete = false;
+				wait100Complete = false;
+				
+				Smack.api.execute(conName, 'wait', [100], function(res) { 
+					wait100Complete = true;
+					assert.ok(!delComplete, "Deletion shouldn't have completed before wait(100) execution");
+				});
+				
+				Smack.api.del(conName, source, function(res) { delComplete = true; });
+				
+				Smack.api.execute(conName, 'wait', [0], function(res) { 
+					wait0Complete = true;
+					assert.ok(delComplete, "Delete should have completed before wait(0) execution");
+				});
+				
+				wait0Complete = false;
+				delAllComplete = false;
+				wait100Complete = false;
+				
+				Smack.api.execute(conName, 'wait', [100], function(res) { 
+					wait100Complete = true;
+					assert.ok(!delAllComplete, "Delete all shouldn't have completed before wait(100) execution");
+				});
+				
+				Smack.api.delAll(conName, source, function(res) { delAllComplete = true; });
+				
+				Smack.api.execute(conName, 'wait', [0], function(res) { 
+					wait0Complete = true;
+					assert.ok(delAllComplete, "Delete all should have completed before wait(0) execution");
+				});
+
+				// sync
+				this.getConnection(conName).executeAllSync = false;
+				
+				var wait0Complete = false;
+				var wait100Complete = false;
+				
+				Smack.api.execute(conName, 'wait', [100], function(res) { 
+					wait100Complete = true;
+					assert.ok(wait0Complete, "wait(0) should have completed before wait(100) execution");
+				});
+				
+				Smack.api.execute(conName, 'wait', [0], function(res) { wait0Complete = true; });
+				
+				wait0Complete = false;
+				var compileComplete = false;
+				wait100Complete = false;
+				
+				Smack.api.execute(conName, 'wait', [100], function(res) { 
+					wait100Complete = true;
+					assert.ok(!compileComplete, "Compilation shouldn't have completed before wait(100) execution");
+				});
+				
+				Smack.api.compile(conName, {small : source}, function(res) { compileComplete = true; });
+				
+				Smack.api.execute(conName, 'wait', [0], function(res) { 
+					wait0Complete = true;
+					assert.ok(compileComplete, "Compilation should have completed before wait(0) execution");
+				});
+				
+				getComplete = false;
+				wait100Complete = false;
+				
+				Smack.api.execute(conName, 'wait', [100], function(res) {
+					wait100Complete = true;
+					assert.ok(!getComplete, "Get shouldn't have completed before wait(100) execution");
+				});
+				
+				Smack.api.get(conName, ['small'], function(res) { getComplete = true; });
+				
+				Smack.api.execute(conName, 'wait', [0], function(res) { 
+					wait0Complete = true;
+					assert.ok(getComplete, "Get should have completed before wait(0) execution");
+				});
+
+				wait0Complete = false;
+				getNamesComplete = false;
+				wait100Complete = false;
+				
+				Smack.api.execute(conName, 'wait', [100], function(res) {
+					wait100Complete = true;
+					assert.ok(!getNamesComplete, "Get names shouldn't have completed before wait(100) execution");
+				});
+				
+				Smack.api.get(conName, ['small'], function(res) { getNamesComplete = true; });
+				
+				Smack.api.execute(conName, 'wait', [0], function(res) { 
+					wait0Complete = true;
+					assert.ok(getNamesComplete, "Get names should have completed before wait(0) execution");
+				});
+
+				wait0Complete = false;
+				delComplete = false;
+				wait100Complete = false;
+				
+				Smack.api.execute(conName, 'wait', [100], function(res) { 
+					wait100Complete = true;
+					assert.ok(!delComplete, "Deletion shouldn't have completed before wait(100) execution");
+				});
+				
+				Smack.api.del(conName, source, function(res) { delComplete = true; });
+				
+				Smack.api.execute(conName, 'wait', [0], function(res) { 
+					wait0Complete = true;
+					assert.ok(delComplete, "Delete should have completed before wait(0) execution");
+				});
+				
+				wait0Complete = false;
+				delAllComplete = false;
+				wait100Complete = false;
+				
+				Smack.api.execute(conName, 'wait', [100], function(res) { 
+					wait100Complete = true;
+					assert.ok(!delAllComplete, "Delete all shouldn't have completed before wait(100) execution");
+				});
+				
+				Smack.api.delAll(conName, source, function(res) { delAllComplete = true; });
+				
+				Smack.api.execute(conName, 'wait', [0], function(res) { 
+					wait0Complete = true;
+					assert.ok(delAllComplete, "Delete all should have completed before wait(0) execution");
+				});
+			});
 		});
+
+		Smack.api.closeConnection('test');
 	});
 };
