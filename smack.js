@@ -1,5 +1,9 @@
 if(!$)
 	throw 'jQuery is required';
+if(!antlr4)
+	throw 'antlr4 is required';
+if(!antlr4.SmackParser)
+	throw 'SmackParser is required';
 
 var Smack = {};
 
@@ -128,20 +132,192 @@ Smack.api = (function($) {
 })($);
 
 Smack.bserver = (function(){
-	var compile = function(source) {
+	var code = {};
+	var units = {};
+	var compile = function(name, source) {
 		throw 'Not implemented';
-	}	
+	}
+	
+	var createUnit = function(name, source, pack, funcs) {
+		return {
+			name : name,
+			source : source,
+			pack : pack,
+			funcs : funcs,
+		};
+	}
+	
+	var addUnit = function(unit) {
+		if(units[unit.name])
+			throw 'a compilation unit by the name ' + unit.name + ' already exists';
+		for(fn in unit.funcs)
+			if(code[pack + '.' + fn])
+				throw 'a function by the name ' + pack + '.' + fn + ' already exists';
+		for(fn in unit.funcs)
+			code[pack + '.' + fn] = unit.funcs[fn];
+		units[unit.name] = unit;
+	}
+	
+	var delUnit = function(name) {
+		if(!units[unit.name])
+			throw 'a compilation unit by the name ' + unit.name + ' doesn\'t exist';
+		for(fn in unit.funcs)
+			delete code[pack + '.' + fn];
+		delete units[unit.name];
+	}
+	
+	var activeSession = undefined;
 	
 	return {
-		connect : function() { throw 'Not implemented'; },
-		close : function() { throw 'Not implemented'; },
-		compile : function() { throw 'Not implemented'; },
-		del : function() { throw 'Not implemented'; },
-		delAll : function() { throw 'Not implemented'; },
-		get : function() { throw 'Not implemented'; },
-		getNames : function() { throw 'Not implemented'; },
-		execute : function() { throw 'Not implemented'; },
+		connect : function(uname, passw, cb) { 
+			activeSession = 'browser-session';
+			cb(activeSession); 
+		},
+		close : function(cb) {
+			var sessionId = activeSession;
+			activeSession = undefined;
+			cb('closed' + sessionId); 
+		},
+		compile : function(units, cb) { 
+			for(name in units)
+				compile(name, units[name]);
+		},
+		del : function(names, cb) {
+			for(var i = 0; i < names.length; i++) {
+				try {
+					delUnit(names[i]);
+				} catch(e){}
+			}
+			cb('done');
+		},
+		delAll : function(cb) {
+			for(name in units) {
+				try {
+					delUnit(name);
+				} catch(e){}
+			}
+			cb('done');
+		},
+		get : function(names, cb) {
+			var sources = [];
+			for(var i = 0; i < names.length; i++)
+				if(units[names[i]])
+					sources.push(units[names[i]].source);
+			cb(sources);
+		},
+		getNames : function(regex, cb) {
+			var names = [];
+			if(!regex)
+				cb(Object.keys(units));
+			cb(names);
+		},
+		execute : function(name, args, cb) { 
+			if(!code[name])
+				'no function exists by the name ' + name;
+			cb(code[name].apply(null, args));
+		},
 	};
+})();
+
+Smack.parser = (function() {
+	return {
+		getParseTree : function(source) {
+			var chars = new antlr4.InputStream(input);
+			var lexer = new antlr4.SelectLexer(chars);
+			var tokens  = new antlr4.CommonTokenStream(lexer);
+			var parser = new antlr4.SmackParser(tokens);
+			parser.buildParseTrees = true;
+			return parser.smkFile();
+		},
+		translateTreeToJs : function(tree) {
+				
+		}
+	}
+})();
+
+Smack.JsTranslator = (function(){
+	var translator = function(){};
+	translator.prototype = new antlr4.SmackListener();
+	translator.prototype.enterSmkFile = function(ctx) { };
+	translator.prototype.exitSmkFile = function(ctx) { };
+	translator.prototype.enterPackageDecl = function(ctx) { };
+	translator.prototype.exitPackageDecl = function(ctx) { };
+	translator.prototype.enterPlus = function(ctx) { };
+	translator.prototype.exitPlus = function(ctx) { };
+	translator.prototype.enterMinus = function(ctx) { };
+	translator.prototype.exitMinus = function(ctx) { };
+	translator.prototype.enterMul = function(ctx) { };
+	translator.prototype.exitMul = function(ctx) { };
+	translator.prototype.enterDiv = function(ctx) { };
+	translator.prototype.exitDiv = function(ctx) { };
+	translator.prototype.enterMod = function(ctx) { };
+	translator.prototype.exitMod = function(ctx) { };
+	translator.prototype.enterEq = function(ctx) { };
+	translator.prototype.exitEq = function(ctx) { };
+	translator.prototype.enterNeq = function(ctx) { };
+	translator.prototype.exitNeq = function(ctx) { };
+	translator.prototype.enterLt = function(ctx) { };
+	translator.prototype.exitLt = function(ctx) { };
+	translator.prototype.enterLe = function(ctx) { };
+	translator.prototype.exitLe = function(ctx) { };
+	translator.prototype.enterGt = function(ctx) { };
+	translator.prototype.exitGt = function(ctx) { };
+	translator.prototype.enterGe = function(ctx) { };
+	translator.prototype.exitGe = function(ctx) { };
+	translator.prototype.enterVarAssign = function(ctx) { };
+	translator.prototype.exitVarAssign = function(ctx) { };
+	translator.prototype.enterFuncDeclParams = function(ctx) { };
+	translator.prototype.exitFuncDeclParams = function(ctx) { };
+	translator.prototype.enterFuncDeclNoParams = function(ctx) { };
+	translator.prototype.exitFuncDeclNoParams = function(ctx) { };
+	translator.prototype.enterFuncInvokeParams = function(ctx) { };
+	translator.prototype.exitFuncInvokeParams = function(ctx) { };
+	translator.prototype.enterFuncInvokeNoParams = function(ctx) { };
+	translator.prototype.exitFuncInvokeNoParams = function(ctx) { };
+	translator.prototype.enterRetStatement = function(ctx) { };
+	translator.prototype.exitRetStatement = function(ctx) { };
+	translator.prototype.enterIfStat = function(ctx) { };
+	translator.prototype.exitIfStat = function(ctx) { };
+	translator.prototype.enterElseIfStat = function(ctx) { };
+	translator.prototype.exitElseIfStat = function(ctx) { };
+	translator.prototype.enterElseStat = function(ctx) { };
+	translator.prototype.exitElseStat = function(ctx) { };
+	translator.prototype.enterLoop = function(ctx) { };
+	translator.prototype.exitLoop = function(ctx) { };
+	translator.prototype.enterNonParenExpr = function(ctx) { };
+	translator.prototype.exitNonParenExpr = function(ctx) { };
+	translator.prototype.enterAtomExpr = function(ctx) { };
+	translator.prototype.exitAtomExpr = function(ctx) { };
+	translator.prototype.enterParenExpr = function(ctx) { };
+	translator.prototype.exitParenExpr = function(ctx) { };
+	translator.prototype.enterValResolv = function(ctx) { };
+	translator.prototype.exitValResolv = function(ctx) { };
+	translator.prototype.enterJpathResolv = function(ctx) { };
+	translator.prototype.exitJpathResolv = function(ctx) { };
+	translator.prototype.enterInvokeResolv = function(ctx) { };
+	translator.prototype.exitInvokeResolv = function(ctx) { };
+	translator.prototype.enterCodeBlock = function(ctx) { };
+	translator.prototype.exitCodeBlock = function(ctx) { };
+	translator.prototype.enterSentence = function(ctx) { };
+	translator.prototype.exitSentence = function(ctx) { };
+	translator.prototype.enterStatement = function(ctx) { };
+	translator.prototype.exitStatement = function(ctx) { };
+	translator.prototype.enterJson = function(ctx) { };
+	translator.prototype.exitJson = function(ctx) { };
+	translator.prototype.enterObject = function(ctx) { };
+	translator.prototype.exitObject = function(ctx) { };
+	translator.prototype.enterPair = function(ctx) { };
+	translator.prototype.exitPair = function(ctx) { };
+	translator.prototype.enterArray = function(ctx) { };
+	translator.prototype.exitArray = function(ctx) { };
+	translator.prototype.enterValue = function(ctx) { };
+	translator.prototype.exitValue = function(ctx) { };
+ 	translator.prototype.enterJsonPath = function(ctx) { };
+	translator.prototype.exitJsonPath = function(ctx) { };
+	translator.prototype.enterKeyRef = function(ctx) { };
+	translator.prototype.exitKeyRef = function(ctx) { };
+	
+	return translator;
 })();
 
 Smack.browserRequestHandler = function(data) {

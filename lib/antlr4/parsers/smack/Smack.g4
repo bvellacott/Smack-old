@@ -97,10 +97,10 @@ resolvable
 	;
 	
 codeBlock
-	:	(centence)*
+	:	(sentence)*
 	;
 	
-centence
+sentence
 	:	statement ';'
 	|	loop
 	| 	ifStat
