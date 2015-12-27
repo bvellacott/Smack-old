@@ -24,7 +24,19 @@
 grammar Smack;
 import Json, JsonPath;
 
-DottedId
+jsonPath
+	:	Id (keyRef)*
+	;
+	
+keyRef
+	:	'[' STRING ']'
+	;
+
+Id
+	:	[$a-zA-Z_]+[a-zA-Z_0-9]*
+	;
+
+dottedId
 	:	Id ('.' Id)*
 	;
 
@@ -33,7 +45,7 @@ smkFile
 	;
 
 packageDecl
-	:	'pack' DottedId
+	:	'pack' dottedId ';'
 	;
 
 op
@@ -42,6 +54,7 @@ op
 	|	'*'		# mul
 	|	'/'		# div
 	|	'%'		# mod
+	|	'^'		# pow
 	|	'=='	# eq
 	|	'!='	# neq
 	|	'<'		# lt
@@ -60,8 +73,8 @@ funcDecl
 	;
 	
 funcInvoke
-	:	DottedId '(' resolvable (',' resolvable)* ')'		# funcInvokeParams
-	|	DottedId '(' ')'									# funcInvokeNoParams
+	:	dottedId '(' resolvable (',' resolvable)* ')'		# funcInvokeParams
+	|	dottedId '(' ')'									# funcInvokeNoParams
 	;
 	
 retStatement
@@ -97,7 +110,7 @@ resolvable
 	;
 	
 codeBlock
-	:	(sentence)*
+	:	'{' (sentence)* '}'
 	;
 	
 sentence
@@ -110,4 +123,10 @@ statement
 	:	varAssign
 	|	funcInvoke
 	|	retStatement
+	;
+
+// Whitespace is ignored 
+WS 
+	: [ \t\r\n]+ -> skip 
 	; 
+	 

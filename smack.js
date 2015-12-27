@@ -46,7 +46,7 @@ Smack.api = (function($) {
 				}, headers),
 				body : body, 
 				cb : function(response) {
-					if(response.err) throw response.err;
+					if(response.err) throw 'Error prosessing call to ' + this.con.host + uri + ' : ' + response.err;
 					if(cb) cb(response.result)
 					con.pendingUri = undefined;
 					if(con.queue.length > 0) {
@@ -135,16 +135,7 @@ Smack.bserver = (function(){
 	var code = {};
 	var units = {};
 	var compile = function(name, source) {
-		throw 'Not implemented';
-	}
-	
-	var createUnit = function(name, source, pack, funcs) {
-		return {
-			name : name,
-			source : source,
-			pack : pack,
-			funcs : funcs,
-		};
+		addUnit(Smack.translate(name, source));
 	}
 	
 	var addUnit = function(unit) {
@@ -178,9 +169,14 @@ Smack.bserver = (function(){
 			activeSession = undefined;
 			cb('closed' + sessionId); 
 		},
-		compile : function(units, cb) { 
-			for(name in units)
-				compile(name, units[name]);
+		compile : function(units, cb) {
+			try {
+				for(name in units)
+					compile(name, units[name]);
+				if(cb) cb('done');
+			} catch(e) {
+				if(cb) cb(e);
+			}
 		},
 		del : function(names, cb) {
 			for(var i = 0; i < names.length; i++) {
@@ -213,111 +209,119 @@ Smack.bserver = (function(){
 		},
 		execute : function(name, args, cb) { 
 			if(!code[name])
-				'no function exists by the name ' + name;
+				throw 'no function exists by the name ' + name;
 			cb(code[name].apply(null, args));
 		},
 	};
 })();
 
-Smack.parser = (function() {
-	return {
-		getParseTree : function(source) {
-			var chars = new antlr4.InputStream(input);
-			var lexer = new antlr4.SelectLexer(chars);
-			var tokens  = new antlr4.CommonTokenStream(lexer);
-			var parser = new antlr4.SmackParser(tokens);
-			parser.buildParseTrees = true;
-			return parser.smkFile();
-		},
-		translateTreeToJs : function(tree) {
-				
-		}
-	}
-})();
 
-Smack.JsTranslator = (function(){
-	var translator = function(){};
-	translator.prototype = new antlr4.SmackListener();
-	translator.prototype.enterSmkFile = function(ctx) { };
-	translator.prototype.exitSmkFile = function(ctx) { };
-	translator.prototype.enterPackageDecl = function(ctx) { };
-	translator.prototype.exitPackageDecl = function(ctx) { };
-	translator.prototype.enterPlus = function(ctx) { };
-	translator.prototype.exitPlus = function(ctx) { };
-	translator.prototype.enterMinus = function(ctx) { };
-	translator.prototype.exitMinus = function(ctx) { };
-	translator.prototype.enterMul = function(ctx) { };
-	translator.prototype.exitMul = function(ctx) { };
-	translator.prototype.enterDiv = function(ctx) { };
-	translator.prototype.exitDiv = function(ctx) { };
-	translator.prototype.enterMod = function(ctx) { };
-	translator.prototype.exitMod = function(ctx) { };
-	translator.prototype.enterEq = function(ctx) { };
-	translator.prototype.exitEq = function(ctx) { };
-	translator.prototype.enterNeq = function(ctx) { };
-	translator.prototype.exitNeq = function(ctx) { };
-	translator.prototype.enterLt = function(ctx) { };
-	translator.prototype.exitLt = function(ctx) { };
-	translator.prototype.enterLe = function(ctx) { };
-	translator.prototype.exitLe = function(ctx) { };
-	translator.prototype.enterGt = function(ctx) { };
-	translator.prototype.exitGt = function(ctx) { };
-	translator.prototype.enterGe = function(ctx) { };
-	translator.prototype.exitGe = function(ctx) { };
-	translator.prototype.enterVarAssign = function(ctx) { };
-	translator.prototype.exitVarAssign = function(ctx) { };
-	translator.prototype.enterFuncDeclParams = function(ctx) { };
-	translator.prototype.exitFuncDeclParams = function(ctx) { };
-	translator.prototype.enterFuncDeclNoParams = function(ctx) { };
-	translator.prototype.exitFuncDeclNoParams = function(ctx) { };
-	translator.prototype.enterFuncInvokeParams = function(ctx) { };
-	translator.prototype.exitFuncInvokeParams = function(ctx) { };
-	translator.prototype.enterFuncInvokeNoParams = function(ctx) { };
-	translator.prototype.exitFuncInvokeNoParams = function(ctx) { };
-	translator.prototype.enterRetStatement = function(ctx) { };
-	translator.prototype.exitRetStatement = function(ctx) { };
-	translator.prototype.enterIfStat = function(ctx) { };
-	translator.prototype.exitIfStat = function(ctx) { };
-	translator.prototype.enterElseIfStat = function(ctx) { };
-	translator.prototype.exitElseIfStat = function(ctx) { };
-	translator.prototype.enterElseStat = function(ctx) { };
-	translator.prototype.exitElseStat = function(ctx) { };
-	translator.prototype.enterLoop = function(ctx) { };
-	translator.prototype.exitLoop = function(ctx) { };
-	translator.prototype.enterNonParenExpr = function(ctx) { };
-	translator.prototype.exitNonParenExpr = function(ctx) { };
-	translator.prototype.enterAtomExpr = function(ctx) { };
-	translator.prototype.exitAtomExpr = function(ctx) { };
-	translator.prototype.enterParenExpr = function(ctx) { };
-	translator.prototype.exitParenExpr = function(ctx) { };
-	translator.prototype.enterValResolv = function(ctx) { };
-	translator.prototype.exitValResolv = function(ctx) { };
-	translator.prototype.enterJpathResolv = function(ctx) { };
-	translator.prototype.exitJpathResolv = function(ctx) { };
-	translator.prototype.enterInvokeResolv = function(ctx) { };
-	translator.prototype.exitInvokeResolv = function(ctx) { };
-	translator.prototype.enterCodeBlock = function(ctx) { };
-	translator.prototype.exitCodeBlock = function(ctx) { };
-	translator.prototype.enterSentence = function(ctx) { };
-	translator.prototype.exitSentence = function(ctx) { };
-	translator.prototype.enterStatement = function(ctx) { };
-	translator.prototype.exitStatement = function(ctx) { };
-	translator.prototype.enterJson = function(ctx) { };
-	translator.prototype.exitJson = function(ctx) { };
-	translator.prototype.enterObject = function(ctx) { };
-	translator.prototype.exitObject = function(ctx) { };
-	translator.prototype.enterPair = function(ctx) { };
-	translator.prototype.exitPair = function(ctx) { };
-	translator.prototype.enterArray = function(ctx) { };
-	translator.prototype.exitArray = function(ctx) { };
-	translator.prototype.enterValue = function(ctx) { };
-	translator.prototype.exitValue = function(ctx) { };
- 	translator.prototype.enterJsonPath = function(ctx) { };
-	translator.prototype.exitJsonPath = function(ctx) { };
-	translator.prototype.enterKeyRef = function(ctx) { };
-	translator.prototype.exitKeyRef = function(ctx) { };
+Smack.translate = (function(){
+	var createUnit = function(name, source, pack, funcs) {
+		return {
+			name : name,
+			source : source,
+			pack : pack,
+			funcs : funcs,
+		};
+	}
 	
-	return translator;
+	var getParseTree = function(source) {
+		var chars = new antlr4.InputStream(source);
+		var lexer = new antlr4.SmackLexer(chars);
+		var tokens  = new antlr4.CommonTokenStream(lexer);
+		var parser = new antlr4.SmackParser(tokens);
+		parser.buildParseTrees = true;
+		return parser.smkFile();
+	}
+	
+	var Translator = function(){};
+	Translator.prototype = new antlr4.SmackListener();
+	Translator.prototype.enterSmkFile = function(ctx) { console.log('enterSmkFile'); };
+	Translator.prototype.exitSmkFile = function(ctx) { console.log('exitSmkFile'); };
+	Translator.prototype.enterPackageDecl = function(ctx) { console.log('enterPackageDecl'); };
+	Translator.prototype.exitPackageDecl = function(ctx) { console.log('exitPackageDecl'); };
+	Translator.prototype.enterPlus = function(ctx) { console.log('enterPlus'); };
+	Translator.prototype.exitPlus = function(ctx) { console.log('exitPlus'); };
+	Translator.prototype.enterMinus = function(ctx) { console.log('enterMinus'); };
+	Translator.prototype.exitMinus = function(ctx) { console.log('exitMinus'); };
+	Translator.prototype.enterMul = function(ctx) { console.log('enterMul'); };
+	Translator.prototype.exitMul = function(ctx) { console.log('exitMul'); };
+	Translator.prototype.enterDiv = function(ctx) { console.log('enterDiv'); };
+	Translator.prototype.exitDiv = function(ctx) { console.log('exitDiv'); };
+	Translator.prototype.enterMod = function(ctx) { console.log('enterMod'); };
+	Translator.prototype.exitMod = function(ctx) { console.log('exitMod'); };
+	Translator.prototype.enterEq = function(ctx) { console.log('enterEq'); };
+	Translator.prototype.exitEq = function(ctx) { console.log('exitEq'); };
+	Translator.prototype.enterNeq = function(ctx) { console.log('enterNeq'); };
+	Translator.prototype.exitNeq = function(ctx) { console.log('exitNeq'); };
+	Translator.prototype.enterLt = function(ctx) { console.log('enterLt'); };
+	Translator.prototype.exitLt = function(ctx) { console.log('exitLt'); };
+	Translator.prototype.enterLe = function(ctx) { console.log('enterLe'); };
+	Translator.prototype.exitLe = function(ctx) { console.log('exitLe'); };
+	Translator.prototype.enterGt = function(ctx) { console.log('enterGt'); };
+	Translator.prototype.exitGt = function(ctx) { console.log('exitGt'); };
+	Translator.prototype.enterGe = function(ctx) { console.log('enterGe'); };
+	Translator.prototype.exitGe = function(ctx) { console.log('exitGe'); };
+	Translator.prototype.enterVarAssign = function(ctx) { console.log('enterVarAssign'); };
+	Translator.prototype.exitVarAssign = function(ctx) { console.log('exitVarAssign'); };
+	Translator.prototype.enterFuncDeclParams = function(ctx) { console.log('enterFuncDeclParams'); };
+	Translator.prototype.exitFuncDeclParams = function(ctx) { console.log('exitFuncDeclParams'); };
+	Translator.prototype.enterFuncDeclNoParams = function(ctx) { console.log('enterFuncDeclNoParams'); };
+	Translator.prototype.exitFuncDeclNoParams = function(ctx) { console.log('exitFuncDeclNoParams'); };
+	Translator.prototype.enterFuncInvokeParams = function(ctx) { console.log('enterFuncInvokeParams'); };
+	Translator.prototype.exitFuncInvokeParams = function(ctx) { console.log('exitFuncInvokeParams'); };
+	Translator.prototype.enterFuncInvokeNoParams = function(ctx) { console.log('enterFuncInvokeNoParams'); };
+	Translator.prototype.exitFuncInvokeNoParams = function(ctx) { console.log('exitFuncInvokeNoParams'); };
+	Translator.prototype.enterRetStatement = function(ctx) { console.log('enterRetStatement'); };
+	Translator.prototype.exitRetStatement = function(ctx) { console.log('exitRetStatement'); };
+	Translator.prototype.enterIfStat = function(ctx) { console.log('enterIfStat'); };
+	Translator.prototype.exitIfStat = function(ctx) { console.log('exitIfStat'); };
+	Translator.prototype.enterElseIfStat = function(ctx) { console.log('enterElseIfStat'); };
+	Translator.prototype.exitElseIfStat = function(ctx) { console.log('exitElseIfStat'); };
+	Translator.prototype.enterElseStat = function(ctx) { console.log('enterElseStat'); };
+	Translator.prototype.exitElseStat = function(ctx) { console.log('exitElseStat'); };
+	Translator.prototype.enterLoop = function(ctx) { console.log('enterLoop'); };
+	Translator.prototype.exitLoop = function(ctx) { console.log('exitLoop'); };
+	Translator.prototype.enterNonParenExpr = function(ctx) { console.log('enterNonParenExpr'); };
+	Translator.prototype.exitNonParenExpr = function(ctx) { console.log('exitNonParenExpr'); };
+	Translator.prototype.enterAtomExpr = function(ctx) { console.log('enterAtomExpr'); };
+	Translator.prototype.exitAtomExpr = function(ctx) { console.log('exitAtomExpr'); };
+	Translator.prototype.enterParenExpr = function(ctx) { console.log('enterParenExpr'); };
+	Translator.prototype.exitParenExpr = function(ctx) { console.log('exitParenExpr'); };
+	Translator.prototype.enterValResolv = function(ctx) { console.log('enterValResolv'); };
+	Translator.prototype.exitValResolv = function(ctx) { console.log('exitValResolv'); };
+	Translator.prototype.enterJpathResolv = function(ctx) { console.log('enterJpathResolv'); };
+	Translator.prototype.exitJpathResolv = function(ctx) { console.log('exitJpathResolv'); };
+	Translator.prototype.enterInvokeResolv = function(ctx) { console.log('enterInvokeResolv'); };
+	Translator.prototype.exitInvokeResolv = function(ctx) { console.log('exitInvokeResolv'); };
+	Translator.prototype.enterCodeBlock = function(ctx) { console.log('enterCodeBlock'); };
+	Translator.prototype.exitCodeBlock = function(ctx) { console.log('exitCodeBlock'); };
+	Translator.prototype.enterSentence = function(ctx) { console.log('enterSentence'); };
+	Translator.prototype.exitSentence = function(ctx) { console.log('exitSentence'); };
+	Translator.prototype.enterStatement = function(ctx) { console.log('enterStatement'); };
+	Translator.prototype.exitStatement = function(ctx) { console.log('exitStatement'); };
+	Translator.prototype.enterJson = function(ctx) { console.log('enterJson'); };
+	Translator.prototype.exitJson = function(ctx) { console.log('exitJson'); };
+	Translator.prototype.enterObject = function(ctx) { console.log('enterObject'); };
+	Translator.prototype.exitObject = function(ctx) { console.log('exitObject'); };
+	Translator.prototype.enterPair = function(ctx) { console.log('enterPair'); };
+	Translator.prototype.exitPair = function(ctx) { console.log('exitPair'); };
+	Translator.prototype.enterArray = function(ctx) { console.log('enterArray'); };
+	Translator.prototype.exitArray = function(ctx) { console.log('exitArray'); };
+	Translator.prototype.enterValue = function(ctx) { console.log('enterValue'); };
+	Translator.prototype.exitValue = function(ctx) { console.log('exitValue'); };
+ 	Translator.prototype.enterJsonPath = function(ctx) { console.log('enterJsonPath'); };
+	Translator.prototype.exitJsonPath = function(ctx) { console.log('exitJsonPath'); };
+	Translator.prototype.enterKeyRef = function(ctx) { console.log('enterKeyRef'); };
+	Translator.prototype.exitKeyRef = function(ctx) { console.log('exitKeyRef'); };
+	
+	return function(name, source) {
+		var tree = getParseTree(source);
+		var translator = new Translator();
+		antlr4.tree.ParseTreeWalker.DEFAULT.walk(translator, tree);
+		return createUnit(name, source, translator.pack, translator.funcs);
+	};
 })();
 
 Smack.browserRequestHandler = function(data) {
@@ -374,7 +378,7 @@ Smack.browserRequestHandler = function(data) {
 	}
 	else if(data.uri === '/execute') {
 		try {
-			Smack.bserver.execute(data.body.names, data.body.args, function(res) {
+			Smack.bserver.execute(data.body.name, data.body.args, function(res) {
 				if(data.cb) data.cb({result : res});
 			});
 		}catch(e) { if(data.cb) data.cb({err : e}); }
