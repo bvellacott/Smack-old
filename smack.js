@@ -142,10 +142,10 @@ Smack.bserver = (function(){
 		if(units[unit.name])
 			throw 'a compilation unit by the name ' + unit.name + ' already exists';
 		for(fn in unit.funcs)
-			if(code[pack + '.' + fn])
-				throw 'a function by the name ' + pack + '.' + fn + ' already exists';
+			if(code[unit.pack + '.' + fn])
+				throw 'a function by the name ' + unit.pack + '.' + fn + ' already exists';
 		for(fn in unit.funcs)
-			code[pack + '.' + fn] = unit.funcs[fn];
+			code[unit.pack + '.' + fn] = unit.funcs[fn];
 		units[unit.name] = unit;
 	}
 	
@@ -235,11 +235,25 @@ Smack.translate = (function(){
 		return parser.smkFile();
 	}
 	
-	var Translator = function(){};
+	var Translator = function(){
+		this.pack = undefined;
+		this.funcs = {};
+		this.curFunctionName = undefined;
+		this.curFunctionSrc = '';
+	};
 	Translator.prototype = new antlr4.SmackListener();
 	Translator.prototype.enterSmkFile = function(ctx) { console.log('enterSmkFile'); };
 	Translator.prototype.exitSmkFile = function(ctx) { console.log('exitSmkFile'); };
-	Translator.prototype.enterPackageDecl = function(ctx) { console.log('enterPackageDecl'); };
+	Translator.prototype.enterPackageDecl = function(ctx) {
+		var id = '';
+		var ids = ctx.children[1].children;
+		for(var i = 0; i < ids.length; i++) {
+			if(i > 0)
+				id += '.';
+			id += ids[i].symbol.text;
+		}
+		this.pack = id;
+	};
 	Translator.prototype.exitPackageDecl = function(ctx) { console.log('exitPackageDecl'); };
 	Translator.prototype.enterPlus = function(ctx) { console.log('enterPlus'); };
 	Translator.prototype.exitPlus = function(ctx) { console.log('exitPlus'); };
@@ -265,9 +279,24 @@ Smack.translate = (function(){
 	Translator.prototype.exitGe = function(ctx) { console.log('exitGe'); };
 	Translator.prototype.enterVarAssign = function(ctx) { console.log('enterVarAssign'); };
 	Translator.prototype.exitVarAssign = function(ctx) { console.log('exitVarAssign'); };
-	Translator.prototype.enterFuncDeclParams = function(ctx) { console.log('enterFuncDeclParams'); };
-	Translator.prototype.exitFuncDeclParams = function(ctx) { console.log('exitFuncDeclParams'); };
-	Translator.prototype.enterFuncDeclNoParams = function(ctx) { console.log('enterFuncDeclNoParams'); };
+	Translator.prototype.enterFuncDeclParams = function(ctx) {
+		this.curFunctionName = ctx.children[1].symbol.text;
+		this.curFunctionSrc += 'function ' + this.curFunctionName + '(' + ctx.children[3].symbol.text;
+		for(var i = 5; i < ctx.children.length; i++) {
+			if(ctx.children[i].symbol && ctx.children[i].symbol.type == antlr4.SmackParser.Id)
+				this.curFunctionSrc += ', ' +  ctx.children[i].symbol.text;
+		}
+		this.curFunctionSrc += ')';
+	};
+	Translator.prototype.exitFuncDeclParams = function(ctx) { 
+		eval('this.funcs[this.curFunctionName] = ' + this.curFunctionSrc);
+		this.curFunctionName = undefined;
+		this.curFunctionSrc = '';
+	};
+	Translator.prototype.enterFuncDeclNoParams = function(ctx) { 
+		this.curFunctionName = ctx.children[1].symbol.text;
+		this.curFunctionSrc += 'function ' + this.curFunctionName + '()';
+	};
 	Translator.prototype.exitFuncDeclNoParams = function(ctx) { console.log('exitFuncDeclNoParams'); };
 	Translator.prototype.enterFuncInvokeParams = function(ctx) { console.log('enterFuncInvokeParams'); };
 	Translator.prototype.exitFuncInvokeParams = function(ctx) { console.log('exitFuncInvokeParams'); };
@@ -319,7 +348,11 @@ Smack.translate = (function(){
 	return function(name, source) {
 		var tree = getParseTree(source);
 		var translator = new Translator();
-		antlr4.tree.ParseTreeWalker.DEFAULT.walk(translator, tree);
+		try {
+			antlr4.tree.ParseTreeWalker.DEFAULT.walk(translator, tree);
+		} catch(e) {
+			console.log(e);
+		}
 		return createUnit(name, source, translator.pack, translator.funcs);
 	};
 })();

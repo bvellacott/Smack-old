@@ -32,6 +32,10 @@ keyRef
 	:	'[' STRING ']'
 	;
 
+smkFile
+	:	comment* packageDecl (comment* funcDecl+)* (comment+ funcDecl*)*
+	;
+
 Id
 	:	[$a-zA-Z_]+[a-zA-Z_0-9]*
 	;
@@ -40,17 +44,17 @@ dottedId
 	:	Id ('.' Id)*
 	;
 
-smkFile
-	:	packageDecl funcDecl*
-	;
-
 packageDecl
 	:	'pack' dottedId ';'
 	;
 
-op
+sumOp
 	:	'+'		# plus
 	|	'-'		# minus
+	;
+
+op
+	:	sumOp	# sum
 	|	'*'		# mul
 	|	'/'		# div
 	|	'%'		# mod
@@ -86,7 +90,7 @@ ifStat
 	;
 	
 elseIfStat
-	:	'else' 'if' codeBlock
+	:	'else' 'if' '(' expression ')' codeBlock
 	;
 	
 elseStat
@@ -100,6 +104,7 @@ loop
 expression 
 	:	resolvable								# atomExpr
 	|	expression op expression				# nonParenExpr
+	|	expression sumOp+ expression			# nonParenSumExpr
 	|	'(' expression ')'						# parenExpr
 	;
 	
@@ -110,7 +115,7 @@ resolvable
 	;
 	
 codeBlock
-	:	'{' (sentence)* '}'
+	:	'{' (('\n')* sentence+ ('\n')*)* '}'
 	;
 	
 sentence
@@ -123,6 +128,10 @@ statement
 	:	varAssign
 	|	funcInvoke
 	|	retStatement
+	;
+
+comment
+	:	'//' ~('\n')* '\n'
 	;
 
 // Whitespace is ignored 
