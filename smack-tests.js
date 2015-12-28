@@ -851,6 +851,23 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 			testContext.logoutTest();
 		});
 		
+		QUnit.test( "Invoke", function( assert ) {
+			testContext.logonTest();
+			
+			var source;
+			Papu.getFileContents('testCode/invoke.smk', function(res){ source = res; });
+			console.log(source);
+			Smack.api.compile(conName, {'invoke' : source});
+		
+			Smack.api.execute(conName, 'tst.invokeAdd', [1, 1], function(res){ assert.equal(res, 2, 'Invokation with parameters failed'); });
+		
+			Smack.api.execute(conName, 'tst.invokeTrue', undefined, function(res){ assert.equal(res, true, 'Invokation without parameters failed'); });
+			
+			Smack.api.delAll(conName);
+			
+			testContext.logoutTest();
+		});
+		
 		var testSyncAsync = function(){
 			QUnit.test('async calls', function( assert ){
 				Papu.getFileContents('testCode/small.smk', function(res) { 

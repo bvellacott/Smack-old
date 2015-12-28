@@ -52,13 +52,17 @@ sumOp
 	:	'+'		# plus
 	|	'-'		# minus
 	;
+	
+powOp
+	:	'^'
+	;	
 
 op
 	:	sumOp	# sum
 	|	'*'		# mul
 	|	'/'		# div
 	|	'%'		# mod
-	|	'^'		# pow
+	|	powOp	# pow
 	|	'=='	# eq
 	|	'!='	# neq
 	|	'<'		# lt
@@ -67,8 +71,20 @@ op
 	|	'>='	# ge
 	;
 
+lp
+	:	'('
+	;
+
+rp
+	:	')'
+	;
+
+assign
+	: '='
+	;
+
 varAssign
-	:	jsonPath '=' expression
+	:	jsonPath assign expression
 	;
 	
 funcDecl
@@ -86,11 +102,11 @@ retStatement
 	;
 	
 ifStat
-	:	'if' '(' expression ')' codeBlock elseIfStat* elseStat?
+	:	'if' lp expression rp codeBlock elseIfStat* elseStat?
 	;
 	
 elseIfStat
-	:	'else' 'if' '(' expression ')' codeBlock
+	:	'else' 'if' lp expression rp codeBlock
 	;
 	
 elseStat
@@ -98,13 +114,14 @@ elseStat
 	;
 	
 loop
-	: 'while' '(' expression ')' codeBlock
+	: 'while' lp expression rp codeBlock
 	;
 	
 expression 
 	:	resolvable								# atomExpr
-	|	expression op expression				# nonParenExpr
 	|	expression sumOp+ expression			# nonParenSumExpr
+	|	expression powOp expression				# nonParenPowExpr
+	|	expression op expression				# nonParenExpr
 	|	'(' expression ')'						# parenExpr
 	;
 	
