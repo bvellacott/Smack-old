@@ -291,9 +291,13 @@ Smack.translate = (function(){
 		this.curFunctionSrc += '%';
 	};
 	Translator.prototype.enterPow = function(ctx) { 
-		this.curFunctionSrc += ', '; 
+//		this.curFunctionSrc += ', '; 
 	};
 	Translator.prototype.exitPow = function(ctx) { console.log('exitPow'); };
+	Translator.prototype.enterPowOp = function(ctx) {
+		this.curFunctionSrc += ', '; 
+	};
+	Translator.prototype.exitPowOp = function(ctx) { console.log('exitPowOp'); };
 	Translator.prototype.exitMod = function(ctx) { console.log('exitMod'); };
 	Translator.prototype.enterEq = function(ctx) { 
 		this.curFunctionSrc += '==';
@@ -348,7 +352,11 @@ Smack.translate = (function(){
 		this.curFunctionSrc += ')';
 	};
 	Translator.prototype.exitFuncDeclParams = function(ctx) { 
-		eval('this.funcs[this.curFunctionName] = ' + this.curFunctionSrc);
+		try {
+			eval('this.funcs[this.curFunctionName] = ' + this.curFunctionSrc);
+		} catch(e) {
+			throw e;
+		}
 		this.curFunctionName = undefined;
 		this.curFunctionSrc = '';
 		this.declaredVars = {};
@@ -397,7 +405,7 @@ Smack.translate = (function(){
 	Translator.prototype.enterNonParenSumExpr = function(ctx) { console.log('enterNonParenSumExpr');  };
 	Translator.prototype.exitNonParenSumExpr = function(ctx) { console.log('exitNonParenSumExpr');  };
 	Translator.prototype.enterNonParenPowExpr = function(ctx) {
-		this.curFunctionSrc += 'pow(';
+		this.curFunctionSrc += 'Math.pow(';
 	};
 	Translator.prototype.exitNonParenPowExpr = function(ctx) { 
 		this.curFunctionSrc += ')';
@@ -488,9 +496,9 @@ Smack.browserRequestHandler = function(data) {
 			});
 		}catch(e) { if(data.cb) data.cb({err : e}); }
 	}
-	else if(data.uri === '/deleteAll') {
+	else if(data.uri === '/deleteall') {
 		try {
-			Smack.bserver.del(function(res) {
+			Smack.bserver.delAll(function(res) {
 				if(data.cb) data.cb({result : res});
 			});
 		}catch(e) { if(data.cb) data.cb({err : e}); }
@@ -502,7 +510,7 @@ Smack.browserRequestHandler = function(data) {
 			});
 		}catch(e) { if(data.cb) data.cb({err : e}); }
 	}
-	else if(data.uri === '/getNames') {
+	else if(data.uri === '/getnames') {
 		try {
 			Smack.bserver.getNames(data.body, function(res) {
 				if(data.cb) data.cb({result : res});
