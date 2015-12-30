@@ -225,7 +225,7 @@ Smack.bserver = (function(){
 			cb(names);
 		},
 		execute : function(name, args, cb) { 
-			cb(getFunc(name).apply(null, args));
+			cb(getFunc(name).apply(undefined, args));
 		},
 	};
 })();

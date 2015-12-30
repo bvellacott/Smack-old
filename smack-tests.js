@@ -1017,7 +1017,9 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		
 			Smack.api.execute(conName, 'tst.addOneWhileLessThan', [10000], function(res){ assert.equal(res, 10000, 'While loop test failed'); });
 		
-			Smack.api.execute(conName, 'tst.callWithInput', ['addOneWhileLessThan', [10000]], function(res){ assert.equal(res, 10000, 'Exec test failed'); });
+			Smack.api.execute(conName, 'tst.callWithInput', ['addOneWhileLessThan', [10000]], function(res){ assert.equal(res, 10000, 'Exec with input test failed'); });
+			
+			Smack.api.execute(conName, 'tst.callWithoutInput', ['returnTrue'], function(res){ assert.equal(res, true, 'Exec without input test failed'); });
 			
 			Smack.api.delAll(conName);
 		});

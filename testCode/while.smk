@@ -10,6 +10,15 @@ func addOneWhileLessThan(limit) {
 	ret result;
 }
 
+func returnTrue() {
+	ret true;
+}
+
 func callWithInput(funcName, input) {
 	exec(funcName, input);
 }
+
+func callWithoutInput(funcName) {
+	exec(funcName);
+}
+
