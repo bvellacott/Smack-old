@@ -531,174 +531,187 @@ Smack.translate = (function(){
 })();
 
 Smack.jsonCompilers = (function(){
-	var dompileDottedId = function(ctx) {
-		var ids = [];
-		for(var i = 0; ctx.Id(i); i++)
-			ids.push(ctx.Id(i));
-		return Smack.sourceGenerators.generateDottedId(ids);
-	}
-	
-	var compilePackageDecl = function(ctx) {
-		var dottedId = ctx.dottedId(0);
-		var ids = [];
-		for(var i = 0; dottedId.Id(i); i++)
-			ids.push(dottedId.Id(i));
-		return Smack.sourceGenerators.generatePackageDecl(ids);
-	}
-	
-	var compileComment = function(ctx) {
-		return Smack.sourceGenerators.generateComment(ctx.getText());
-	}
-	
-	var compileExpression = function(ctx, pack) {
-		if(ctx instanceof antlr4.SmackParser.AtomExprContext)
-			return compileResolvable(ctx.resolvable(0)); // Not implemented
-		if(ctx instanceof antlr4.SmackParser.ParenExprContext)
-			return Smack.sourceGenerators.generateParenExpr(ctx.getText()); // Not imlemented
-		var expr1Src = compileExpression(ctx.expression(0));
-		var expr2Src = compileExpression(ctx.expression(1));
-		if(ctx instanceof antlr4.SmackParser.SumExprContext) {
-			var isPos = true;
-			for(var i = 1; i < ctx.children.length; i++) {
-				var c = ctx.children[0];
-				if(c.symbol && c.symbol.type === antlr4.SmackParser.Minus)
-					isPos = !isPos;
+	return {
+		getIds : function(dottedId) {
+			var dottedId = ctx.dottedId(0);
+			var ids = [];
+			for(var i = 0; dottedId.Id(i); i++)
+				ids.push(dottedId.Id(i));
+			return ids;
+		},
+		compilePackageDecl : function(ctx) {
+			var ids = this.getIds(ctx.dottedId(0));
+			return Smack.sourceGenerators.generatePackageDecl(ids);
+		},
+		compileComment : function(ctx) {
+			return Smack.sourceGenerators.generateComment(ctx.getText());
+		},
+		compileValue : function(ctx) {
+			return Smack.sourceGenerators.generateValue(ctx.getText());
+		},
+		compileResolvable : function(ctx, pack) {
+			if(ctx instanceof antlr4.SmackParser.ValueContext)
+				return this.compileValue(ctx);
+			if(ctx instanceof antlr4.SmackParser.JsonPathContext)
+				return this.compileJsonPath(ctx, pack);
+			if(ctx instanceof antlr4.SmackParser.FuncInvokeContext)
+				return this.compileFuncInvoke(ctx, pack);
+			throw 'Unhandled resolvable';
+		},
+		compileKeyRef : function(ctx, pack) {
+			var resolvableSrc = this.compileResolvable(ctx.resolvable(0), pack);
+			return Smack.sourceGenerators.generateKeyRef(resolvableSrc);
+		},
+		compileJsonPath : function(ctx, pack) {
+			var id = ctx.Id(0).getText();
+			var keyRefSrcs = [];
+			for(var i = 0; ctx.keyRef(i); i++)
+				keyRefSrcs.push(this.compileKeyRef(ctx.keyRef(i), pack));
+			return Smack.sourceGenerators.generateJsonPath(id, keyRefSrcs);
+		},
+		compileExpression : function(ctx, pack) {
+			if(ctx instanceof antlr4.SmackParser.AtomExprContext)
+				return this.compileResolvable(ctx.resolvable(0), pack);
+			if(ctx instanceof antlr4.SmackParser.ParenExprContext)
+				return Smack.sourceGenerators.generateParenExpr(this.compileExpression(ctx.expression(0)));
+			var expr1Src = this.compileExpression(ctx.expression(0));
+			var expr2Src = this.compileExpression(ctx.expression(1));
+			if(ctx instanceof antlr4.SmackParser.SumExprContext) {
+				var isPos = true;
+				for(var i = 1; i < ctx.children.length; i++) {
+					var c = ctx.children[0];
+					if(c.symbol && c.symbol.type === antlr4.SmackParser.Minus)
+						isPos = !isPos;
+				}
+				if(isPos)
+					return Smack.sourceGenerators.generatePlusExpr(expr1Src, expr2Src);
+				else
+					return Smack.sourceGenerators.generateMinusExpr(expr1Src, expr2Src);
 			}
-			if(isPos)
-				return Smack.sourceGenerators.generatePlusExpr(expr1Src, expr2Src); // Not imlemented
+			if(ctx instanceof antlr4.SmackParser.MulExprContext)
+				return Smack.sourceGenerators.generateMulExpr(expr1Src, expr2Src);
+			if(ctx instanceof antlr4.SmackParser.DivExprContext)
+				return Smack.sourceGenerators.generateDivExpr(expr1Src, expr2Src);
+			if(ctx instanceof antlr4.SmackParser.ModExprContext)
+				return Smack.sourceGenerators.generateModExpr(expr1Src, expr2Src);
+			if(ctx instanceof antlr4.SmackParser.PowExprContext)
+				return Smack.sourceGenerators.generatePowExpr(expr1Src, expr2Src);
+			if(ctx instanceof antlr4.SmackParser.EqExprContext)
+				return Smack.sourceGenerators.generateEqExpr(expr1Src, expr2Src);
+			if(ctx instanceof antlr4.SmackParser.NeqExprContext)
+				return Smack.sourceGenerators.generateNeqExpr(expr1Src, expr2Src);
+			if(ctx instanceof antlr4.SmackParser.LtExprContext)
+				return Smack.sourceGenerators.generateLtExpr(expr1Src, expr2Src);
+			if(ctx instanceof antlr4.SmackParser.LeExprContext)
+				return Smack.sourceGenerators.generateLeExpr(expr1Src, expr2Src);
+			if(ctx instanceof antlr4.SmackParser.GtExprContext)
+				return Smack.sourceGenerators.generateGtExpr(expr1Src, expr2Src);
+			if(ctx instanceof antlr4.SmackParser.GeExprContext)
+				return Smack.sourceGenerators.generateGeExpr(expr1Src, expr2Src);
+			if(ctx instanceof antlr4.SmackParser.AndExprContext)
+				return Smack.sourceGenerators.generateAndExpr(expr1Src, expr2Src);
+			if(ctx instanceof antlr4.SmackParser.OrExprContext)
+				return Smack.sourceGenerators.generateOrExpr(expr1Src, expr2Src);
 			else
-				return Smack.sourceGenerators.generateMinusExpr(expr1Src, expr2Src); // Not imlemented
+				throw 'Uhandled expression';
+		},
+		compileVarAssign : function(ctx, pack) {
+			var jsonPathSrc = this.compileJsonPath(ctx.jsonPath(0), pack);
+			var expressionSrc = this.compileExpression(ctx.expression(0), pack);
+			return Smack.sourceGenerators.generateVarAssign(jsonPathSrc, expressionSrc);
+		},
+		compileFuncInvoke : function(ctx, pack) {
+			var ids = this.getIds(ctx.dottedId(0));
+			var resolvableSrcs = [];
+			for(var i = 0; ctx.resolvable(i); i++)
+				resolvableSrcs.push(this.compileResolvable(ctx.resolvable(i), pack));
+			return Smack.sourceGenerators.generateFuncInvoke(pack, ids, resolvableSrcs);
+		},
+		compileRetStatement : function(ctx, pack) {
+			var expressionSrc = this.compileExpression(ctx.expression(0));
+			return Smack.sourceGenerators.generateRetStatement(expressionSrc);
+		},
+		compileStatement : function(ctx, pack) {
+			var statement = ctx.children[0];
+			var src;
+			if(statement instanceof antlr4.SmackParser.VarAssignContext)
+				src = this.compileVarAssign(s, pack);
+			else if(statement instanceof antlr4.SmackParser.FuncInvokeContext)
+				src = this.compileFuncInvoke(s);
+			else if(statement instanceof antlr4.SmackParser.RetStatementContext)
+				src = this.compileRetStatement(s);
+			return src;
+		},
+		compileLoop : function(ctx, pack) {
+			var expressionSrc = this.compileExpression(ctx.expression(0));
+			var codeBlockSrc = this.compileCodeBlock(ctx.codeBlock(0), pack);
+			return Smack.sourceGenerators.generateLoop(expressionSrc, codeBlockSrc);
+		},
+		compileElseStat : function(ctx, pack) {
+			var codeBlockSrc = this.compileCodeBlock(ctx.codeBlock(0), pack);
+			return Smack.sourceGenerators.generateElseStat(codeBlockSrc);
+		},
+		compileElseIfStat : function(ctx, pack) {
+			var expressionSrc = this.compileExpression(ctx.expression(0));
+			var codeBlockSrc = this.compileCodeBlock(ctx.codeBlock(0), pack);
+			return Smack.sourceGenerators.generateElseIfStat(expressionSrc, codeBlockSrc);
+		},
+		compileIfStat : function(ctx, pack) {
+			var expressionSrc = this.compileExpression(ctx.expression(0));
+			var codeBlockSrc = this.compileCodeBlock(ctx.codeBlock(0), pack);
+			var elseifStatSrcs = [];
+			for(var i = 0; ctx.elseIfStat(i); i++)
+				elseifStatSrcs.push(this.compileElseIfStat(ctx.elseIfStat(i), pack));
+			var elseStatSrc = '';
+			if(ctx.elseStat(0))
+				elseStatSrc = this.compileElseStat(ctx.elseStat(0), pack);
+			return Smack.sourceGenerators.generateIfStat(expressionSrc, codeBlockSrc, elseifStatSrcs, elseStatSrc);
+		},
+		compileSentence : function(ctx, pack) {
+			var sentence = ctx.children[0];
+			var src;
+			if(sentence instanceof antlr4.SmackParser.StatementContext)
+				src = this.compileStatement(s, pack);
+			else if(sentence instanceof antlr4.SmackParser.LoopContext)
+				src = this.compileLoop(s, pack);
+			else if(sentence instanceof antlr4.SmackParser.IfStatContext)
+				src = this.compileIfStat(s);
+			else if(sentence instanceof antlr4.SmackParser.CommentContext)
+				src = this.compileComment(s);
+			return src;
+		},
+		compileCodeBlock : function(ctx, pack) {
+			var sentenceSrcs = [];
+			for(var i = 0; ctx.sentence(i); i++)
+				sentenceSrcs.push(this.compileSentence(ctx.sentence(i)), pack);
+			return Smack.sourceGenerators.generateCodeBlock(sentenceSrcs);
+		},
+		compileFuncDecl : function(ctx, pack) {
+			var source = '';
+			var codeBlockSrc 
+			var ids = [];
+			
+			for(var i = 0; i < ctx.children.length; i++) {
+				var c = ctx.children[i];
+				if(c.symbol && c.symbol.type === antlr4.SmackParser.Id)
+					ids.push(c.getText());
+				else if(c instanceof antlr4.SmackParser.CodeBlockContext)
+					codeBlockSrc = this.compileCodeBlock(c, pack);
+			}
+			return Smack.sourceGenerators.generateFuncDecl(pack, ids, codeBlockSrc);
+		},
+		compileSmkFile : function(ctx) {
+			var pack = this.compilePackageDecl(c);
+	
+			for(var i = 0; i < ctx.children.length; i++) {
+				var c = ctx.children[i];
+				if(c instanceof antlr4.SmackParser.FuncDeclContext)
+					source += this.compileFuncDecl(c, pack);
+				else if(c instanceof antlr4.SmackParser.CommentContext)
+					source += this.compileComment(c);
+			}
+			return source;
 		}
-		if(ctx instanceof antlr4.SmackParser.SumExprContext)
-			return Smack.sourceGenerators.generatePlusExpr(expr1Src, expr2Src); // Not imlemented
-		if(ctx instanceof antlr4.SmackParser.MulExprContext)
-			return Smack.sourceGenerators.generateMulExpr(expr1Src, expr2Src); // Not imlemented
-		if(ctx instanceof antlr4.SmackParser.DivExprContext)
-			return Smack.sourceGenerators.generateDivExpr(expr1Src, expr2Src); // Not imlemented
-		if(ctx instanceof antlr4.SmackParser.ModExprContext)
-			return Smack.sourceGenerators.generateModExpr(expr1Src, expr2Src); // Not imlemented
-		if(ctx instanceof antlr4.SmackParser.PowExprContext)
-			return Smack.sourceGenerators.generatePowExpr(expr1Src, expr2Src); // Not imlemented
-		if(ctx instanceof antlr4.SmackParser.EqExprContext)
-			return Smack.sourceGenerators.generateEqExpr(expr1Src, expr2Src); // Not imlemented
-		if(ctx instanceof antlr4.SmackParser.NeqExprContext)
-			return Smack.sourceGenerators.generateNeqExpr(expr1Src, expr2Src); // Not imlemented
-		if(ctx instanceof antlr4.SmackParser.LtExprContext)
-			return Smack.sourceGenerators.generateLtExpr(expr1Src, expr2Src); // Not imlemented
-		if(ctx instanceof antlr4.SmackParser.LeExprContext)
-			return Smack.sourceGenerators.generateLeExpr(expr1Src, expr2Src); // Not imlemented
-		if(ctx instanceof antlr4.SmackParser.GtExprContext)
-			return Smack.sourceGenerators.generateGeExpr(expr1Src, expr2Src); // Not imlemented
-		if(ctx instanceof antlr4.SmackParser.AndExprContext)
-			return Smack.sourceGenerators.generateAndExpr(expr1Src, expr2Src); // Not imlemented
-		if(ctx instanceof antlr4.SmackParser.OrExprContext)
-			return Smack.sourceGenerators.generateOrExpr(expr1Src, expr2Src); // Not imlemented
-		else
-			throw 'Unknown expression';
-	}
-	
-	var compileVarAssign = function(ctx, pack) {
-		var jsonPathSrc = compileJsonPath(ctx.jsonPath(0), pack);
-		var expressionSrc = compileExpression(ctx.expression(0), pack);
-		return Smack.sourceGenerators.generateVarAssign(jsonPathSrc, expressionSrc);
-	}
-	
-	var compileComment = function(ctx, pack) {
-		return Smack.sourceGenerators.generateComment(ctx.getText());
-	}
-	
-	var compileComment = function(ctx, pack) {
-		return Smack.sourceGenerators.generateComment(ctx.getText());
-	}
-	
-	var compileStatement = function(ctx, pack) {
-		var statement = ctx.children[0];
-		var src;
-		if(statement instanceof antlr4.SmackParser.VarAssignContext)
-			src = compileVarAssign(s, pack);
-		else if(statement instanceof antlr4.SmackParser.FuncInvokeContext)
-			src = compileFuncInvoke(s);
-		else if(statement instanceof antlr4.SmackParser.RetStatementContext)
-			src = compileRetStatement(s);
-		return src;
-	}
-	
-	var compileLoop = function(ctx, pack) {
-		var expressionSrc = compileExpression(ctx.expression(0));
-		var codeBlockSrc = compileCodeBlock(ctx.codeBlock(0), pack);
-		return Smack.sourceGenerators.generateLoop(expressionSrc, codeBlockSrc);
-	}
-	
-	var compileElseStat = function(ctx, pack) {
-		var codeBlockSrc = compileCodeBlock(ctx.codeBlock(0), pack);
-		return Smack.sourceGenerators.generateElseStat(codeBlockSrc);
-	}
-	
-	var compileElseIfStat = function(ctx, pack) {
-		var expressionSrc = compileExpression(ctx.expression(0));
-		var codeBlockSrc = compileCodeBlock(ctx.codeBlock(0), pack);
-		return Smack.sourceGenerators.generateElseIfStat(expressionSrc, codeBlockSrc);
-	}
-	
-	var compileIfStat = function(ctx, pack) {
-		var expressionSrc = compileExpression(ctx.expression(0));
-		var codeBlockSrc = compileCodeBlock(ctx.codeBlock(0), pack);
-		var elseifStatSrcs = [];
-		for(var i = 0; ctx.elseIfStat(i); i++)
-			elseifStatSrcs.push(compileElseIfStat(ctx.elseIfStat(i), pack));
-		var elseStatSrc = '';
-		if(ctx.elseStat(0))
-			elseStatSrc = compileElseStat(ctx.elseStat(0), pack);
-		return Smack.sourceGenerators.generateIfStat(expressionSrc, codeBlockSrc, elseifStatSrcs, elseStatSrc);
-	}
-	
-	var compileSentence = function(ctx, pack) {
-		var sentence = ctx.children[0];
-		var src;
-		if(sentence instanceof antlr4.SmackParser.StatementContext)
-			src = compileStatement(s, pack);
-		else if(sentence instanceof antlr4.SmackParser.LoopContext)
-			src = compileLoop(s, pack);
-		else if(sentence instanceof antlr4.SmackParser.IfStatContext)
-			src = compileIfStat(s);
-		else if(sentence instanceof antlr4.SmackParser.CommentContext)
-			src = compileComment(s);
-		return src;
-	}
-	
-	var compileCodeBlock = function(ctx, pack) {
-		var sentenceSrcs = [];
-		for(var i = 0; ctx.sentence(i); i++)
-			sentenceSrcs.push(compileSentence(ctx.sentence(i)), pack);
-		return Smack.sourceGenerators.generateCodeBlock(sentenceSrcs);
-	}
-	
-	var compileFuncDecl = function(ctx, pack) {
-		var source = '';
-		var codeBlockSrc 
-		var ids = [];
-		
-		for(var i = 0; i < ctx.children.length; i++) {
-			var c = ctx.children[i];
-			if(c.symbol && c.symbol.type === antlr4.SmackParser.Id)
-				ids.push(c.getText());
-			else if(c instanceof antlr4.SmackParser.CodeBlockContext)
-				codeBlockSrc = this.compileCodeBlock(c, pack);
-		}
-		return Smack.sourceGenerators.generateFuncDecl(pack, ids, codeBlockSrc);
-	}
-	
-	var compileSmkFile = function(ctx) {
-		var pack = this.compilePackageDecl(c);
-
-		for(var i = 0; i < ctx.children.length; i++) {
-			var c = ctx.children[i];
-			if(c instanceof antlr4.SmackParser.FuncDeclContext)
-				source += this.compileFuncDecl(c, pack);
-			else if(c instanceof antlr4.SmackParser.CommentContext)
-				source += this.compileComment(c);
-		}
-		return source;
 	}
 })();
 
@@ -714,8 +727,80 @@ Smack.sourceGenerators = (function(){
 			return '// ' + str + '\n';
 		},
 		generateVarAssign : function(jsonPathSrc, expressionSrc) {
-			return jsonPathSrc = expressionSrc;
+			return jsonPathSrc + '=' + expressionSrc;
 		},
+		generateValue : function(valueStr) {
+			return valueStr;
+		},
+		generateKeyRef : function(resolvableSrc) {
+			return '[' + resolvableSrc + ']';
+		},
+		generateJsonPath : function(id, keyRefSrcs) {
+			var src = id;
+			for(var i = 0; i < keyRefSrcs.length; i++)
+				src += keyRefSrcs[i];
+			return src;
+		},
+		generateParenExpr : function(expressionSrc) {
+			return '(' + expressionSrc + ')';
+		},
+		generatePlusExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' + ' + expr2Src;
+		},
+		generateMinusExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' - ' + expr2Src;
+		},
+		generateMulExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' * ' + expr2Src;
+		},
+		generateDivExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' / ' + expr2Src;
+		},
+		generateModExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' % ' + expr2Src;
+		},
+		generatePowExpr : function(expr1Src, expr2Src) {
+			return 'Math.pow(' + expr1Src + ', ' + expr2Src + ')';
+		},
+		generateEqExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' === ' + expr2Src;
+		},
+		generateNeqExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' !== ' + expr2Src;
+		},
+		generateLtExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' < ' + expr2Src;
+		},
+		generateLeExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' <= ' + expr2Src;
+		},
+		generateGtExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' > ' + expr2Src;
+		},
+		generateGeExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' >= ' + expr2Src;
+		},
+		generateAndExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' && ' + expr2Src;
+		},
+		generateOrExpr : function(expr1Src, expr2Src) {
+			return expr1Src + ' || ' + expr2Src;
+		},
+		generateFuncInvoke : function(pack, ids, resolvableSrcs) {
+			var src = '';
+			if(ids.length > 1)
+				src += ids.join('.');
+			else if(Smack.bserver.stdLib[ids[0]])
+				src = ids[0];
+			else
+				src += pack + '.' + ids[0]
+			src += '(';
+			src += resolvableSrcs.join(', ');
+			src += ')';
+		},
+		generateRetStatement : function(expressionSrc) {
+			return 'return ' + expressionSrc;
+		},		
 		generateLoop : function(expressionSrc, codeBlockSrc) {
 			return 'while' + '('  + expressionSrc + ')' + codeBlockSrc;
 		},
@@ -747,6 +832,7 @@ Smack.sourceGenerators = (function(){
 				if(!isFirst)
 					source += ', ';
 				source += ids[i];
+				isFirst = false;
 			}
 			source += ')' + codeBlockSrc;
 		},
