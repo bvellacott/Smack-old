@@ -230,6 +230,70 @@ Smack.bserver = (function(){
 	};
 })();
 
+Smack.browserRequestHandler = function(data) {
+	this.latestRequest = { url : this.host + data.uri, headers : data.headers, body : data.body };
+	var response;
+	if(data.uri === '/connect') {
+		try {
+			Smack.bserver.connect(data.headers.uname, data.headers.passw, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/close') {
+		try {
+			Smack.bserver.close(function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/compile') {
+		try {
+			Smack.bserver.compile(data.body, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/delete') {
+		try {
+			Smack.bserver.del(data.body, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/deleteall') {
+		try {
+			Smack.bserver.delAll(function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/get') {
+		try {
+			Smack.bserver.get(data.body, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/getnames') {
+		try {
+			Smack.bserver.getNames(data.body, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/execute') {
+		try {
+			Smack.bserver.execute(data.body.name, data.body.args, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else
+		throw 'Invalid uri';
+}
+
+var SmkFileWalker = function(){};
 
 Smack.translate = (function(){
 	var createUnit = function(name, source, pack, funcs) {
@@ -455,7 +519,8 @@ Smack.translate = (function(){
 	
 	return function(name, source) {
 		var tree = getParseTree(source);
-		var translator = new Translator();
+//		var translator = new Translator();
+		var translator = new SmkFileWalker();
 		try {
 			antlr4.tree.ParseTreeWalker.DEFAULT.walk(translator, tree);
 		} catch(e) {
@@ -465,66 +530,418 @@ Smack.translate = (function(){
 	};
 })();
 
-Smack.browserRequestHandler = function(data) {
-	this.latestRequest = { url : this.host + data.uri, headers : data.headers, body : data.body };
-	var response;
-	if(data.uri === '/connect') {
-		try {
-			Smack.bserver.connect(data.headers.uname, data.headers.passw, function(res) {
-				if(data.cb) data.cb({result : res});
-			});
-		}catch(e) { if(data.cb) data.cb({err : e}); }
+Smack.jsonCompilers = (function(){
+	var dompileDottedId = function(ctx) {
+		var ids = [];
+		for(var i = 0; ctx.Id(i); i++)
+			ids.push(ctx.Id(i));
+		return Smack.sourceGenerators.generateDottedId(ids);
 	}
-	else if(data.uri === '/close') {
-		try {
-			Smack.bserver.close(function(res) {
-				if(data.cb) data.cb({result : res});
-			});
-		}catch(e) { if(data.cb) data.cb({err : e}); }
+	
+	var compilePackageDecl = function(ctx) {
+		var dottedId = ctx.dottedId(0);
+		var ids = [];
+		for(var i = 0; dottedId.Id(i); i++)
+			ids.push(dottedId.Id(i));
+		return Smack.sourceGenerators.generatePackageDecl(ids);
 	}
-	else if(data.uri === '/compile') {
-		try {
-			Smack.bserver.compile(data.body, function(res) {
-				if(data.cb) data.cb({result : res});
-			});
-		}catch(e) { if(data.cb) data.cb({err : e}); }
+	
+	var compileComment = function(ctx) {
+		return Smack.sourceGenerators.generateComment(ctx.getText());
 	}
-	else if(data.uri === '/delete') {
-		try {
-			Smack.bserver.del(data.body, function(res) {
-				if(data.cb) data.cb({result : res});
-			});
-		}catch(e) { if(data.cb) data.cb({err : e}); }
+	
+	var compileExpression = function(ctx, pack) {
+		if(ctx instanceof antlr4.SmackParser.AtomExprContext)
+			return compileResolvable(ctx.resolvable(0)); // Not implemented
+		if(ctx instanceof antlr4.SmackParser.ParenExprContext)
+			return Smack.sourceGenerators.generateParenExpr(ctx.getText()); // Not imlemented
+		var expr1Src = compileExpression(ctx.expression(0));
+		var expr2Src = compileExpression(ctx.expression(1));
+		if(ctx instanceof antlr4.SmackParser.SumExprContext) {
+			var isPos = true;
+			for(var i = 1; i < ctx.children.length; i++) {
+				var c = ctx.children[0];
+				if(c.symbol && c.symbol.type === antlr4.SmackParser.Minus)
+					isPos = !isPos;
+			}
+			if(isPos)
+				return Smack.sourceGenerators.generatePlusExpr(expr1Src, expr2Src); // Not imlemented
+			else
+				return Smack.sourceGenerators.generateMinusExpr(expr1Src, expr2Src); // Not imlemented
+		}
+		if(ctx instanceof antlr4.SmackParser.SumExprContext)
+			return Smack.sourceGenerators.generatePlusExpr(expr1Src, expr2Src); // Not imlemented
+		if(ctx instanceof antlr4.SmackParser.MulExprContext)
+			return Smack.sourceGenerators.generateMulExpr(expr1Src, expr2Src); // Not imlemented
+		if(ctx instanceof antlr4.SmackParser.DivExprContext)
+			return Smack.sourceGenerators.generateDivExpr(expr1Src, expr2Src); // Not imlemented
+		if(ctx instanceof antlr4.SmackParser.ModExprContext)
+			return Smack.sourceGenerators.generateModExpr(expr1Src, expr2Src); // Not imlemented
+		if(ctx instanceof antlr4.SmackParser.PowExprContext)
+			return Smack.sourceGenerators.generatePowExpr(expr1Src, expr2Src); // Not imlemented
+		if(ctx instanceof antlr4.SmackParser.EqExprContext)
+			return Smack.sourceGenerators.generateEqExpr(expr1Src, expr2Src); // Not imlemented
+		if(ctx instanceof antlr4.SmackParser.NeqExprContext)
+			return Smack.sourceGenerators.generateNeqExpr(expr1Src, expr2Src); // Not imlemented
+		if(ctx instanceof antlr4.SmackParser.LtExprContext)
+			return Smack.sourceGenerators.generateLtExpr(expr1Src, expr2Src); // Not imlemented
+		if(ctx instanceof antlr4.SmackParser.LeExprContext)
+			return Smack.sourceGenerators.generateLeExpr(expr1Src, expr2Src); // Not imlemented
+		if(ctx instanceof antlr4.SmackParser.GtExprContext)
+			return Smack.sourceGenerators.generateGeExpr(expr1Src, expr2Src); // Not imlemented
+		if(ctx instanceof antlr4.SmackParser.AndExprContext)
+			return Smack.sourceGenerators.generateAndExpr(expr1Src, expr2Src); // Not imlemented
+		if(ctx instanceof antlr4.SmackParser.OrExprContext)
+			return Smack.sourceGenerators.generateOrExpr(expr1Src, expr2Src); // Not imlemented
+		else
+			throw 'Unknown expression';
 	}
-	else if(data.uri === '/deleteall') {
-		try {
-			Smack.bserver.delAll(function(res) {
-				if(data.cb) data.cb({result : res});
-			});
-		}catch(e) { if(data.cb) data.cb({err : e}); }
+	
+	var compileVarAssign = function(ctx, pack) {
+		var jsonPathSrc = compileJsonPath(ctx.jsonPath(0), pack);
+		var expressionSrc = compileExpression(ctx.expression(0), pack);
+		return Smack.sourceGenerators.generateVarAssign(jsonPathSrc, expressionSrc);
 	}
-	else if(data.uri === '/get') {
-		try {
-			Smack.bserver.get(data.body, function(res) {
-				if(data.cb) data.cb({result : res});
-			});
-		}catch(e) { if(data.cb) data.cb({err : e}); }
+	
+	var compileComment = function(ctx, pack) {
+		return Smack.sourceGenerators.generateComment(ctx.getText());
 	}
-	else if(data.uri === '/getnames') {
-		try {
-			Smack.bserver.getNames(data.body, function(res) {
-				if(data.cb) data.cb({result : res});
-			});
-		}catch(e) { if(data.cb) data.cb({err : e}); }
+	
+	var compileComment = function(ctx, pack) {
+		return Smack.sourceGenerators.generateComment(ctx.getText());
 	}
-	else if(data.uri === '/execute') {
-		try {
-			Smack.bserver.execute(data.body.name, data.body.args, function(res) {
-				if(data.cb) data.cb({result : res});
-			});
-		}catch(e) { if(data.cb) data.cb({err : e}); }
+	
+	var compileStatement = function(ctx, pack) {
+		var statement = ctx.children[0];
+		var src;
+		if(statement instanceof antlr4.SmackParser.VarAssignContext)
+			src = compileVarAssign(s, pack);
+		else if(statement instanceof antlr4.SmackParser.FuncInvokeContext)
+			src = compileFuncInvoke(s);
+		else if(statement instanceof antlr4.SmackParser.RetStatementContext)
+			src = compileRetStatement(s);
+		return src;
 	}
-	else
-		throw 'Invalid uri';
-}
+	
+	var compileLoop = function(ctx, pack) {
+		var expressionSrc = compileExpression(ctx.expression(0));
+		var codeBlockSrc = compileCodeBlock(ctx.codeBlock(0), pack);
+		return Smack.sourceGenerators.generateLoop(expressionSrc, codeBlockSrc);
+	}
+	
+	var compileElseStat = function(ctx, pack) {
+		var codeBlockSrc = compileCodeBlock(ctx.codeBlock(0), pack);
+		return Smack.sourceGenerators.generateElseStat(codeBlockSrc);
+	}
+	
+	var compileElseIfStat = function(ctx, pack) {
+		var expressionSrc = compileExpression(ctx.expression(0));
+		var codeBlockSrc = compileCodeBlock(ctx.codeBlock(0), pack);
+		return Smack.sourceGenerators.generateElseIfStat(expressionSrc, codeBlockSrc);
+	}
+	
+	var compileIfStat = function(ctx, pack) {
+		var expressionSrc = compileExpression(ctx.expression(0));
+		var codeBlockSrc = compileCodeBlock(ctx.codeBlock(0), pack);
+		var elseifStatSrcs = [];
+		for(var i = 0; ctx.elseIfStat(i); i++)
+			elseifStatSrcs.push(compileElseIfStat(ctx.elseIfStat(i), pack));
+		var elseStatSrc = '';
+		if(ctx.elseStat(0))
+			elseStatSrc = compileElseStat(ctx.elseStat(0), pack);
+		return Smack.sourceGenerators.generateIfStat(expressionSrc, codeBlockSrc, elseifStatSrcs, elseStatSrc);
+	}
+	
+	var compileSentence = function(ctx, pack) {
+		var sentence = ctx.children[0];
+		var src;
+		if(sentence instanceof antlr4.SmackParser.StatementContext)
+			src = compileStatement(s, pack);
+		else if(sentence instanceof antlr4.SmackParser.LoopContext)
+			src = compileLoop(s, pack);
+		else if(sentence instanceof antlr4.SmackParser.IfStatContext)
+			src = compileIfStat(s);
+		else if(sentence instanceof antlr4.SmackParser.CommentContext)
+			src = compileComment(s);
+		return src;
+	}
+	
+	var compileCodeBlock = function(ctx, pack) {
+		var sentenceSrcs = [];
+		for(var i = 0; ctx.sentence(i); i++)
+			sentenceSrcs.push(compileSentence(ctx.sentence(i)), pack);
+		return Smack.sourceGenerators.generateCodeBlock(sentenceSrcs);
+	}
+	
+	var compileFuncDecl = function(ctx, pack) {
+		var source = '';
+		var codeBlockSrc 
+		var ids = [];
+		
+		for(var i = 0; i < ctx.children.length; i++) {
+			var c = ctx.children[i];
+			if(c.symbol && c.symbol.type === antlr4.SmackParser.Id)
+				ids.push(c.getText());
+			else if(c instanceof antlr4.SmackParser.CodeBlockContext)
+				codeBlockSrc = this.compileCodeBlock(c, pack);
+		}
+		return Smack.sourceGenerators.generateFuncDecl(pack, ids, codeBlockSrc);
+	}
+	
+	var compileSmkFile = function(ctx) {
+		var pack = this.compilePackageDecl(c);
 
+		for(var i = 0; i < ctx.children.length; i++) {
+			var c = ctx.children[i];
+			if(c instanceof antlr4.SmackParser.FuncDeclContext)
+				source += this.compileFuncDecl(c, pack);
+			else if(c instanceof antlr4.SmackParser.CommentContext)
+				source += this.compileComment(c);
+		}
+		return source;
+	}
+})();
+
+Smack.sourceGenerators = (function(){
+	return {
+		generateDottedId : function(ids) {
+			return ids.join('.');
+		},
+		generatePackageDecl : function(ids) {
+			return 'Smack.bserver.code.' + ids.join('.');
+		},
+		generateComment : function(str) {
+			return '// ' + str + '\n';
+		},
+		generateVarAssign : function(jsonPathSrc, expressionSrc) {
+			return jsonPathSrc = expressionSrc;
+		},
+		generateLoop : function(expressionSrc, codeBlockSrc) {
+			return 'while' + '('  + expressionSrc + ')' + codeBlockSrc;
+		},
+		generateElseStat : function(codeBlockSrc) {
+			return 'else' + codeBlockSrc;
+		},
+		generateElseIfStat : function(expressionSrc, codeBlockSrc) {
+			return 'else if' + '(' expressionSrc + ')' + codeBlockSrc;
+		},
+		generateIfStat : function(expressionSrc, codeBlockSrc, elseifStatSrcs, elseStat) {
+			var src = 'if' + '(' expressionSrc + ')' + codeBlockSrc;
+			for(var i = 0; i < elseifStatSrcs.length; i++)
+				src += elseifStatSrcs[i];
+			if(elseStat)
+				src += elseStat;
+			return src;
+		},
+		generateCodeBlock : function(sentenceSources) {
+			var source = '{';
+			for(var i = 0; i < sentenceSources.length; i++)
+				source += sentenceSources[i];
+			source += '}';
+			return source;
+		},
+		generateFuncDecl : function(pack, ids, codeBlockSrc) {
+			var source = 'function ' + pack + '.' + ids[0] + '(';
+			var isFirst = true;
+			for(var i = 1; i < ids.length; i++) {
+				if(!isFirst)
+					source += ', ';
+				source += ids[i];
+			}
+			source += ')' + codeBlockSrc;
+		},
+	};
+})();
+
+var prot = SmkFileWalker.prototype = new antlr4.SmackListener();
+
+	prot.enterSmkFile = function(ctx) {
+		console.log(ctx.getText());
+		ctx.parser._ctx = ctx;
+		ctx.parser.exitRule();
+	};
+	prot.exitSmkFile = function(ctx) {
+	};
+	prot.enterPackageDecl = function(ctx) {
+		console.log(ctx.getText());
+		ctx.parser._ctx = ctx;
+		ctx.parser.exitRule();
+	};
+	prot.exitPackageDecl = function(ctx) {
+	};
+	prot.enterDottedId = function(ctx) {
+		console.log(ctx.getText());
+		ctx.parser._ctx = ctx;
+		ctx.parser.exitRule();
+	};
+	prot.exitDottedId = function(ctx) {
+	};
+	prot.enterVarAssign = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitVarAssign = function(ctx) {
+	};
+	prot.enterFuncDecl = function(ctx) {
+		console.log(ctx.getText());
+		ctx.parser._ctx = ctx;
+		ctx.parser.exitRule();
+	};
+	prot.exitFuncDecl = function(ctx) {
+	};
+	prot.enterFuncInvoke = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitFuncInvoke = function(ctx) {
+	};
+	prot.enterRetStatement = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitRetStatement = function(ctx) {
+	};
+	prot.enterIfStat = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitIfStat = function(ctx) {
+	};
+	prot.enterElseIfStat = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitElseIfStat = function(ctx) {
+	};
+	prot.enterElseStat = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitElseStat = function(ctx) {
+	};
+	prot.enterLoop = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitLoop = function(ctx) {
+	};
+	// Expressions
+	prot.enterGeExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitGeExpr = function(ctx) {
+	};
+	prot.enterModExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitModExpr = function(ctx) {
+	};
+	prot.enterGtExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitGtExpr = function(ctx) {
+	};
+	prot.enterAtomExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitAtomExpr = function(ctx) {
+	};
+	prot.enterParenExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitParenExpr = function(ctx) {
+	};
+	prot.enterNeqExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitNeqExpr = function(ctx) {
+	};
+	prot.enterEqExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitEqExpr = function(ctx) {
+	};
+	prot.enterLtExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitLtExpr = function(ctx) {
+	};
+	prot.enterSumExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitSumExpr = function(ctx) {
+	};
+	prot.enterLeExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitLeExpr = function(ctx) {
+	};
+	prot.enterMulExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitMulExpr = function(ctx) {
+	};
+	prot.enterDivExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitDivExpr = function(ctx) {
+	};
+	prot.enterPowExpr = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitPowExpr = function(ctx) {
+	};
+	
+	prot.enterValResolv = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitValResolv = function(ctx) {
+	};
+	prot.enterJpathResolv = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitJpathResolv = function(ctx) {
+	};
+	prot.enterInvokeResolv = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitInvokeResolv = function(ctx) {
+	};
+	prot.enterCodeBlock = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitCodeBlock = function(ctx) {
+	};
+	prot.enterSentence = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitSentence = function(ctx) {
+	};
+	prot.enterStatement = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitStatement = function(ctx) {
+	};
+	prot.enterComment = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitComment = function(ctx) {
+	};
+	prot.enterJson = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitJson = function(ctx) {
+	};
+	prot.enterObject = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitObject = function(ctx) {
+	};
+	prot.enterPair = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitPair = function(ctx) {
+	};
+	prot.enterArray = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitArray = function(ctx) {
+	};
+	prot.enterValue = function(ctx) {
+		console.log(ctx.getText());
+	};
+	prot.exitValue = function(ctx) {
+	};

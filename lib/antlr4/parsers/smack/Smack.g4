@@ -24,89 +24,48 @@
 grammar Smack;
 import Json, JsonPath;
 
-jsonPath
-	:	Id (keyRef)*
-	;
-	
-keyRef
-	:	'[' STRING ']'
-	;
-
 smkFile
 	:	comment* packageDecl (comment* funcDecl+)* (comment+ funcDecl*)*
-	;
-
-Id
-	:	[$a-zA-Z_]+[a-zA-Z_0-9]*
-	;
-
-dottedId
-	:	Id ('.' Id)*
 	;
 
 packageDecl
 	:	'pack' dottedId ';'
 	;
-
-sumOp
-	:	'+'		# plus
-	|	'-'		# minus
-	;
 	
-powOp
-	:	'^'
-	;	
-
-op
-	:	sumOp	# sum
-	|	'*'		# mul
-	|	'/'		# div
-	|	'%'		# mod
-	|	powOp	# pow
-	|	'=='	# eq
-	|	'!='	# neq
-	|	'<'		# lt
-	|	'<='	# le
-	|	'>'		# gt
-	|	'>='	# ge
-	;
-
-lp
-	:	'('
-	;
-
-rp
-	:	')'
-	;
-
-assign
-	: '='
-	;
-
 varAssign
-	:	jsonPath assign expression
+	:	jsonPath '=' expression
 	;
 	
 funcDecl
-	:	'func' Id '(' Id (',' Id)* ')' codeBlock			# funcDeclParams
-	|	'func' Id '(' ')' codeBlock							# funcDeclNoParams
+	:	'func' Id '(' Id? (',' Id)* ')' codeBlock
 	;
 	
 funcInvoke
-	:	dottedId '(' resolvable (',' resolvable)* ')'		# funcInvokeParams
-	|	dottedId '(' ')'									# funcInvokeNoParams
+	:	dottedId '(' resolvable? (',' resolvable)* ')'
 	;
 	
+jsonPath
+	:	Id (keyRef)*
+	;
+	
+dottedId
+	:	Id ('.' Id)*
+	;
+
+keyRef
+	:	'[' resolvable ']'
+	;
+
 retStatement
 	:	'ret' expression
 	;
 	
 ifStat
-	:	'if' lp expression rp codeBlock elseIfStat* elseStat?
+	:	'if' '(' expression ')' codeBlock elseIfStat* elseStat?
 	;
 	
 elseIfStat
-	:	'else' 'if' lp expression rp codeBlock
+	:	'else' 'if' '(' expression ')' codeBlock
 	;
 	
 elseStat
@@ -114,15 +73,25 @@ elseStat
 	;
 	
 loop
-	: 'while' lp expression rp codeBlock
+	: 'while' '(' expression ')' codeBlock
 	;
 	
 expression 
 	:	resolvable								# atomExpr
-	|	expression sumOp+ expression			# nonParenSumExpr
-	|	expression powOp expression				# nonParenPowExpr
-	|	expression op expression				# nonParenExpr
 	|	'(' expression ')'						# parenExpr
+	|	expression (Plus | Minus)+ expression	# sumExpr
+	|	expression Mul expression				# mulExpr
+	|	expression Div expression				# divExpr
+	|	expression Mod expression				# modExpr
+	|	expression Pow expression				# powExpr
+	|	expression Eq expression				# eqExpr
+	|	expression Neq expression				# neqExpr
+	|	expression Lt expression				# ltExpr
+	|	expression Le expression				# leExpr
+	|	expression Gt expression				# gtExpr
+	|	expression Ge expression				# geExpr
+	|	expression And expression				# andExpr
+	|	expression Or expression				# orExpr
 	;
 	
 resolvable
@@ -139,6 +108,7 @@ sentence
 	:	statement ';'
 	|	loop
 	| 	ifStat
+	|	comment
 	;
 	
 statement
@@ -151,6 +121,25 @@ comment
 	:	'//' ~('\n')* '\n'
 	;
 
+Plus	:	'+'		;
+Minus	:	'-'		;
+Mul		:	'*'		;
+Div		:	'/'		;
+Mod		:	'%'		;
+Pow		:	'^'		;
+Eq		:	'=='	;
+Neq		:	'!='	;
+Lt		:	'<'		;
+Le		:	'<='	;
+Gt		:	'>'		;
+Ge		:	'>='	;
+And		:	'&&'	;
+Or		:	'||'	;
+
+Id
+	:	[$a-zA-Z_]+[$a-zA-Z_0-9]*
+	;
+	
 // Whitespace is ignored 
 WS 
 	: [ \t\r\n]+ -> skip 
