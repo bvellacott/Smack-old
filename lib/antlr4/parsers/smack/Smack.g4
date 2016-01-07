@@ -95,9 +95,9 @@ expression
 	;
 	
 resolvable
-	:	value		# valResolv
-	|	jsonPath	# jpathResolv
-	|	funcInvoke	# invokeResolv
+	:	value		
+	|	jsonPath	
+	|	funcInvoke	
 	;
 	
 codeBlock

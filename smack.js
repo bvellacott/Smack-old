@@ -141,13 +141,14 @@ Smack.bserver = (function(){
 	var addUnit = function(unit) {
 		if(units[unit.name])
 			throw 'a compilation unit by the name ' + unit.name + ' already exists';
-		if(!code[unit.pack])
-			code[unit.pack] = {};
-		for(fn in unit.funcs)
-			if(code[unit.pack][fn])
-				throw 'a function by the name ' + unit.pack + '.' + fn + ' already exists';
-		for(fn in unit.funcs)
-			code[unit.pack][fn] = unit.funcs[fn];
+		if(!eval(unit.pack))
+			eval(unit.pack + ' = {};');
+		eval(unit.targetSource);
+//		for(fn in unit.funcs)
+//			if(code[unit.pack][fn])
+//				throw 'a function by the name ' + unit.pack + '.' + fn + ' already exists';
+//		for(fn in unit.funcs)
+//			code[unit.pack][fn] = unit.funcs[fn];
 		units[unit.name] = unit;
 	}
 	
@@ -192,6 +193,7 @@ Smack.bserver = (function(){
 					compile(name, units[name]);
 				if(cb) cb('done');
 			} catch(e) {
+				console.log(e);
 				if(cb) cb(e);
 			}
 		},
@@ -296,12 +298,12 @@ Smack.browserRequestHandler = function(data) {
 var SmkFileWalker = function(){};
 
 Smack.translate = (function(){
-	var createUnit = function(name, source, pack, funcs) {
+	var createUnit = function(name, smkSource, targetSource, pack) {
 		return {
 			name : name,
-			source : source,
+			smkSource : smkSource,
+			targetSource : targetSource,
 			pack : pack,
-			funcs : funcs,
 		};
 	}
 	
@@ -517,23 +519,24 @@ Smack.translate = (function(){
 	Translator.prototype.enterKeyRef = function(ctx) { console.log('enterKeyRef'); };
 	Translator.prototype.exitKeyRef = function(ctx) { console.log('exitKeyRef'); };
 	
-	return function(name, source) {
-		var tree = getParseTree(source);
+	return function(name, smkSource) {
+		var tree = getParseTree(smkSource);
 //		var translator = new Translator();
-		var translator = new SmkFileWalker();
-		try {
-			antlr4.tree.ParseTreeWalker.DEFAULT.walk(translator, tree);
-		} catch(e) {
-			console.log(e);
-		}
-		return createUnit(name, source, translator.pack, translator.funcs);
+//		var translator = new SmkFileWalker();
+//		try {
+//			antlr4.tree.ParseTreeWalker.DEFAULT.walk(translator, tree);
+//		} catch(e) {
+//			console.log(e);
+//		}
+		var pack = Smack.jsonCompilers.compilePackageDecl(tree.packageDecl(0));
+		var targetSource = Smack.jsonCompilers.compileSmkFile(tree)
+		return createUnit(name, smkSource, targetSource, pack);
 	};
 })();
 
 Smack.jsonCompilers = (function(){
 	return {
 		getIds : function(dottedId) {
-			var dottedId = ctx.dottedId(0);
 			var ids = [];
 			for(var i = 0; dottedId.Id(i); i++)
 				ids.push(dottedId.Id(i));
@@ -550,6 +553,7 @@ Smack.jsonCompilers = (function(){
 			return Smack.sourceGenerators.generateValue(ctx.getText());
 		},
 		compileResolvable : function(ctx, pack) {
+			ctx = ctx.children[0];
 			if(ctx instanceof antlr4.SmackParser.ValueContext)
 				return this.compileValue(ctx);
 			if(ctx instanceof antlr4.SmackParser.JsonPathContext)
@@ -635,12 +639,12 @@ Smack.jsonCompilers = (function(){
 			var statement = ctx.children[0];
 			var src;
 			if(statement instanceof antlr4.SmackParser.VarAssignContext)
-				src = this.compileVarAssign(s, pack);
+				src = this.compileVarAssign(statement, pack);
 			else if(statement instanceof antlr4.SmackParser.FuncInvokeContext)
-				src = this.compileFuncInvoke(s);
+				src = this.compileFuncInvoke(statement, pack);
 			else if(statement instanceof antlr4.SmackParser.RetStatementContext)
-				src = this.compileRetStatement(s);
-			return src;
+				src = this.compileRetStatement(statement, pack);
+			return src + ';';
 		},
 		compileLoop : function(ctx, pack) {
 			var expressionSrc = this.compileExpression(ctx.expression(0));
@@ -671,19 +675,19 @@ Smack.jsonCompilers = (function(){
 			var sentence = ctx.children[0];
 			var src;
 			if(sentence instanceof antlr4.SmackParser.StatementContext)
-				src = this.compileStatement(s, pack);
+				src = this.compileStatement(sentence, pack);
 			else if(sentence instanceof antlr4.SmackParser.LoopContext)
-				src = this.compileLoop(s, pack);
+				src = this.compileLoop(sentence, pack);
 			else if(sentence instanceof antlr4.SmackParser.IfStatContext)
-				src = this.compileIfStat(s);
+				src = this.compileIfStat(sentence);
 			else if(sentence instanceof antlr4.SmackParser.CommentContext)
-				src = this.compileComment(s);
+				src = this.compileComment(sentence);
 			return src;
 		},
 		compileCodeBlock : function(ctx, pack) {
 			var sentenceSrcs = [];
 			for(var i = 0; ctx.sentence(i); i++)
-				sentenceSrcs.push(this.compileSentence(ctx.sentence(i)), pack);
+				sentenceSrcs.push(this.compileSentence(ctx.sentence(i), pack));
 			return Smack.sourceGenerators.generateCodeBlock(sentenceSrcs);
 		},
 		compileFuncDecl : function(ctx, pack) {
@@ -701,8 +705,8 @@ Smack.jsonCompilers = (function(){
 			return Smack.sourceGenerators.generateFuncDecl(pack, ids, codeBlockSrc);
 		},
 		compileSmkFile : function(ctx) {
-			var pack = this.compilePackageDecl(c);
-	
+			var pack = this.compilePackageDecl(ctx.packageDecl(0));
+			var source = '';
 			for(var i = 0; i < ctx.children.length; i++) {
 				var c = ctx.children[i];
 				if(c instanceof antlr4.SmackParser.FuncDeclContext)
@@ -724,7 +728,7 @@ Smack.sourceGenerators = (function(){
 			return 'Smack.bserver.code.' + ids.join('.');
 		},
 		generateComment : function(str) {
-			return '// ' + str + '\n';
+			return ' ';//'// ' + str + '\n';
 		},
 		generateVarAssign : function(jsonPathSrc, expressionSrc) {
 			return jsonPathSrc + '=' + expressionSrc;
@@ -791,7 +795,7 @@ Smack.sourceGenerators = (function(){
 			if(ids.length > 1)
 				src += ids.join('.');
 			else if(Smack.bserver.stdLib[ids[0]])
-				src = ids[0];
+				src += ids[0];
 			else
 				src += pack + '.' + ids[0]
 			src += '(';
@@ -808,10 +812,10 @@ Smack.sourceGenerators = (function(){
 			return 'else' + codeBlockSrc;
 		},
 		generateElseIfStat : function(expressionSrc, codeBlockSrc) {
-			return 'else if' + '(' expressionSrc + ')' + codeBlockSrc;
+			return 'else if' + '(' + expressionSrc + ')' + codeBlockSrc;
 		},
 		generateIfStat : function(expressionSrc, codeBlockSrc, elseifStatSrcs, elseStat) {
-			var src = 'if' + '(' expressionSrc + ')' + codeBlockSrc;
+			var src = 'if' + '(' + expressionSrc + ')' + codeBlockSrc;
 			for(var i = 0; i < elseifStatSrcs.length; i++)
 				src += elseifStatSrcs[i];
 			if(elseStat)
@@ -822,11 +826,14 @@ Smack.sourceGenerators = (function(){
 			var source = '{';
 			for(var i = 0; i < sentenceSources.length; i++)
 				source += sentenceSources[i];
-			source += '}';
+			source += '}\n';
 			return source;
 		},
 		generateFuncDecl : function(pack, ids, codeBlockSrc) {
-			var source = 'function ' + pack + '.' + ids[0] + '(';
+			var funcPath = pack + '.' + ids[0];
+//			var serverFuncPath = 'Smack.bserver.code.' + pack + '.' + ids[0];
+			eval('if(' + pack + ' && ' + funcPath + ') throw "the function ' + funcPath + ' already exists";' )
+			var source = funcPath + ' = function(';
 			var isFirst = true;
 			for(var i = 1; i < ids.length; i++) {
 				if(!isFirst)
@@ -835,6 +842,7 @@ Smack.sourceGenerators = (function(){
 				isFirst = false;
 			}
 			source += ')' + codeBlockSrc;
+			return source;
 		},
 	};
 })();
