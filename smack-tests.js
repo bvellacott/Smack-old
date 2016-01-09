@@ -197,7 +197,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 					var source = res; 
 	
 					// sync
-					this.getConnection(conName).executeAllSync = true;
+					Smack.api.getConnection(conName).executeAllSync = true;
 					
 					var wait0Complete = false;
 					var wait100Complete = false;
@@ -391,7 +391,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 			};
 		})(function() {
 			testSyncAsync();
-			Smack.api.closeConnection(conName);
+//			Smack.api.closeConnection(conName);
 		});
 		
 		testContext.logonTest();
@@ -533,7 +533,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		
 			Smack.api.execute(conName, 'tst.ge', [-2,1], function(res){ assert.equal(res, false, '-2 >= 1 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.ge', [0, 0], function(res){ assert.equal(res, false, '0 >= 0 calculation failed'); });
+			Smack.api.execute(conName, 'tst.ge', [0, 0], function(res){ assert.equal(res, true, '0 >= 0 calculation failed'); });
 		
 			Smack.api.execute(conName, 'tst.ge', [1,-2], function(res){ assert.equal(res, true, '1 >= -2 calculation failed'); });
 		
@@ -833,7 +833,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		
 			Smack.api.execute(conName, 'tst.divLtDiv', [1,1,-1,2], function(res){ assert.equal(res, false, '1 / 1 < -1 / 2 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.divLtDiv', [1,2,1,1], function(res){ assert.equal(res, false, '1 / 1 < -1 / -2 calculation failed'); });
+			Smack.api.execute(conName, 'tst.divLtDiv', [1,2,-1,-2], function(res){ assert.equal(res, false, '1 / 1 < -1 / -2 calculation failed'); });
 		
 		
 			Smack.api.execute(conName, 'tst.divLeDiv', [1,1,2,1], function(res){ assert.equal(res, true, '1 / 1 <= 2 / 1 calculation failed'); });
@@ -844,7 +844,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		
 			Smack.api.execute(conName, 'tst.divLeDiv', [1,1,-1,2], function(res){ assert.equal(res, false, '1 / 1 <= -1 / 2 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.divLeDiv', [1,2,1,1], function(res){ assert.equal(res, false, '1 / 2 <= 1 / 1 calculation failed'); });
+			Smack.api.execute(conName, 'tst.divLeDiv', [1,2,1,1], function(res){ assert.equal(res, true, '1 / 2 <= 1 / 1 calculation failed'); });
 		
 		
 			Smack.api.execute(conName, 'tst.divGtDiv', [1,1,2,1], function(res){ assert.equal(res, false, '1 / 1 > 2 / 1 calculation failed'); });
@@ -855,7 +855,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		
 			Smack.api.execute(conName, 'tst.divGtDiv', [1,1,-1,2], function(res){ assert.equal(res, true, '1 / 1 > -1 / 2 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.divGtDiv', [1,2,1,1], function(res){ assert.equal(res, true, '1 / 2 > 1 / 1 calculation failed'); });
+			Smack.api.execute(conName, 'tst.divGtDiv', [1,2,1,1], function(res){ assert.equal(res, false, '1 / 2 > 1 / 1 calculation failed'); });
 		
 		
 			Smack.api.execute(conName, 'tst.divGeDiv', [1,1,2,1], function(res){ assert.equal(res, false, '1 / 1 >= 2 / 1 calculation failed'); });
@@ -866,7 +866,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		
 			Smack.api.execute(conName, 'tst.divGeDiv', [1,1,-1,2], function(res){ assert.equal(res, true, '1 / 1 >= -1 / 2 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.divGeDiv', [1,2,1,1], function(res){ assert.equal(res, true, '1 / 2 >= 1 / 1 calculation failed'); });
+			Smack.api.execute(conName, 'tst.divGeDiv', [1,2,1,1], function(res){ assert.equal(res, false, '1 / 2 >= 1 / 1 calculation failed'); });
 		
 		
 			Smack.api.execute(conName, 'tst.modEqMod', [1,1,1,1], function(res){ assert.equal(res, true, '1 % 1 == 1 % 1 calculation failed'); });
@@ -1017,9 +1017,9 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		
 			Smack.api.execute(conName, 'tst.addOneWhileLessThan', [10000], function(res){ assert.equal(res, 10000, 'While loop test failed'); });
 		
-			Smack.api.execute(conName, 'tst.callWithInput', ['addOneWhileLessThan', [10000]], function(res){ assert.equal(res, 10000, 'Exec with input test failed'); });
+			Smack.api.execute(conName, 'tst.callWithInput', ['tst.addOneWhileLessThan', [10000]], function(res){ assert.equal(res, 10000, 'Exec with input test failed'); });
 			
-			Smack.api.execute(conName, 'tst.callWithoutInput', ['returnTrue'], function(res){ assert.equal(res, true, 'Exec without input test failed'); });
+			Smack.api.execute(conName, 'tst.callWithoutInput', ['tst.returnTrue'], function(res){ assert.equal(res, true, 'Exec without input test failed'); });
 			
 			Smack.api.delAll(conName);
 		});

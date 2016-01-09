@@ -9,9 +9,9 @@ func retTrue() {
 }
 
 func invokeAdd(a, b) {
-	ret tst.add(a, b);
+	ret add(a, b);
 }
 
 func invokeTrue() {
-	ret tst.retTrue();
+	ret retTrue();
 }

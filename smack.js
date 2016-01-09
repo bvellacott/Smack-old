@@ -135,7 +135,7 @@ Smack.bserver = (function(){
 	var code = {};
 	var units = {};
 	var compile = function(name, source) {
-		addUnit(Smack.translate(name, source));
+		addUnit(Smack.compile(name, source));
 	}
 	
 	var addUnit = function(unit) {
@@ -144,11 +144,6 @@ Smack.bserver = (function(){
 		if(!eval(unit.pack))
 			eval(unit.pack + ' = {};');
 		eval(unit.targetSource);
-//		for(fn in unit.funcs)
-//			if(code[unit.pack][fn])
-//				throw 'a function by the name ' + unit.pack + '.' + fn + ' already exists';
-//		for(fn in unit.funcs)
-//			code[unit.pack][fn] = unit.funcs[fn];
 		units[unit.name] = unit;
 	}
 	
@@ -297,7 +292,7 @@ Smack.browserRequestHandler = function(data) {
 
 var SmkFileWalker = function(){};
 
-Smack.translate = (function(){
+Smack.compile = (function(){
 	var createUnit = function(name, smkSource, targetSource, pack) {
 		return {
 			name : name,
@@ -316,218 +311,8 @@ Smack.translate = (function(){
 		return parser.smkFile();
 	}
 	
-	var Translator = function(){
-		this.pack = undefined;
-		this.funcs = {};
-		this.curFunctionName = undefined;
-		this.curFunctionSrc = '';
-		this.declaredVars = {};
-	};
-	Translator.prototype = new antlr4.SmackListener();
-	Translator.prototype.enterSmkFile = function(ctx) { console.log('enterSmkFile'); };
-	Translator.prototype.exitSmkFile = function(ctx) { console.log('exitSmkFile'); };
-	Translator.prototype.enterPackageDecl = function(ctx) {
-		var id = '';
-		var ids = ctx.children[1].children;
-		for(var i = 0; i < ids.length; i++) {
-			if(i > 0)
-				id += '.';
-			id += ids[i].symbol.text;
-		}
-		this.pack = id;
-	};
-	Translator.prototype.exitPackageDecl = function(ctx) { console.log('exitPackageDecl'); };
-	Translator.prototype.enterPlus = function(ctx) { 
-		this.curFunctionSrc += '+';
-	};
-	Translator.prototype.exitPlus = function(ctx) { console.log('exitPlus'); };
-	Translator.prototype.enterMinus = function(ctx) { 
-		this.curFunctionSrc += '-';
-	};
-	Translator.prototype.exitMinus = function(ctx) { console.log('exitMinus'); };
-	Translator.prototype.enterMul = function(ctx) { 
-		this.curFunctionSrc += '*';
-	};
-	Translator.prototype.exitMul = function(ctx) { console.log('exitMul'); };
-	Translator.prototype.enterDiv = function(ctx) { 
-		this.curFunctionSrc += '/';
-	};
-	Translator.prototype.exitDiv = function(ctx) { console.log('exitDiv'); };
-	Translator.prototype.enterMod = function(ctx) { 
-		this.curFunctionSrc += '%';
-	};
-	Translator.prototype.enterPow = function(ctx) { 
-//		this.curFunctionSrc += ', '; 
-	};
-	Translator.prototype.exitPow = function(ctx) { console.log('exitPow'); };
-	Translator.prototype.enterPowOp = function(ctx) {
-		this.curFunctionSrc += ', '; 
-	};
-	Translator.prototype.exitPowOp = function(ctx) { console.log('exitPowOp'); };
-	Translator.prototype.exitMod = function(ctx) { console.log('exitMod'); };
-	Translator.prototype.enterEq = function(ctx) { 
-		this.curFunctionSrc += '==';
-	};
-	Translator.prototype.exitEq = function(ctx) { console.log('exitEq'); };
-	Translator.prototype.enterNeq = function(ctx) { 
-		this.curFunctionSrc += '!=';
-	};
-	Translator.prototype.exitNeq = function(ctx) { console.log('exitNeq'); };
-	Translator.prototype.enterLt = function(ctx) { 
-		this.curFunctionSrc += '<';
-	};
-	Translator.prototype.exitLt = function(ctx) { console.log('exitLt'); };
-	Translator.prototype.enterLe = function(ctx) { 
-		this.curFunctionSrc += '<=';
-	};
-	Translator.prototype.exitLe = function(ctx) { console.log('exitLe'); };
-	Translator.prototype.enterGt = function(ctx) {
-		this.curFunctionSrc += '>';
-	};
-	Translator.prototype.exitGt = function(ctx) { console.log('exitGt'); };
-	Translator.prototype.enterGe = function(ctx) { 
-		this.curFunctionSrc += '>=';
-	};
-	Translator.prototype.exitGe = function(ctx) { console.log('exitGe'); };
-	Translator.prototype.enterLp = function(ctx) {
-		this.curFunctionSrc += '(';
-	};
-	Translator.prototype.exitLp = function(ctx) { console.log('exitLp'); };
-	Translator.prototype.enterRp = function(ctx) {
-		this.curFunctionSrc += ')';
-	};
-	Translator.prototype.exitRp = function(ctx) { console.log('exitRp'); };
-	Translator.prototype.enterAssign = function(ctx) { 
-		this.curFunctionSrc += ' = ';
-	};
-	Translator.prototype.exitAssign = function(ctx) {};
-	Translator.prototype.enterVarAssign = function(ctx) {
-		var name = ctx.children[0].getText();
-		if(!this.declaredVars[name])
-			this.curFunctionSrc += 'var ';
-		this.declaredVars[name] = true;
-	};
-	Translator.prototype.exitVarAssign = function(ctx) { console.log('exitVarAssign'); };
-	Translator.prototype.enterFuncDeclParams = function(ctx) {
-		this.curFunctionName = ctx.children[1].symbol.text;
-		this.curFunctionSrc += 'function ' + this.curFunctionName + '(' + ctx.children[3].symbol.text;
-		for(var i = 5; i < ctx.children.length; i++) {
-			if(ctx.children[i].symbol && ctx.children[i].symbol.type == antlr4.SmackParser.Id)
-				this.curFunctionSrc += ', ' +  ctx.children[i].symbol.text;
-		}
-		this.curFunctionSrc += ')';
-	};
-	Translator.prototype.exitFuncDeclParams = function(ctx) { 
-		try {
-			eval('this.funcs[this.curFunctionName] = ' + this.curFunctionSrc);
-		} catch(e) {
-			throw e;
-		}
-		this.curFunctionName = undefined;
-		this.curFunctionSrc = '';
-		this.declaredVars = {};
-	};
-	Translator.prototype.enterFuncDeclNoParams = function(ctx) { 
-		this.curFunctionName = ctx.children[1].symbol.text;
-		this.curFunctionSrc += 'function ' + this.curFunctionName + '()';
-	};
-	Translator.prototype.exitFuncDeclNoParams = function(ctx) { 
-		this.exitFuncDeclParams(ctx); 
-	};
-	Translator.prototype.enterFuncInvokeParams = function(ctx) { 
-		this.curFunctionSrc += 'Smack.bserver.code. ' + ctx.children[0].getText() + '(';
-	};
-	Translator.prototype.exitFuncInvokeParams = function(ctx) { 
-		this.curFunctionSrc += ')';
-	};
-	Translator.prototype.enterFuncInvokeNoParams = function(ctx) { 
-		this.curFunctionSrc += 'Smack.bserver.code. ' + ctx.children[0].getText() + '()';
-	};
-	Translator.prototype.exitFuncInvokeNoParams = function(ctx) { console.log('exitFuncInvokeNoParams'); };
-	Translator.prototype.enterRetStatement = function(ctx) { 
-		this.curFunctionSrc += 'return ';
-	};
-	Translator.prototype.exitRetStatement = function(ctx) { console.log('exitRetStatement'); };
-	Translator.prototype.enterIfStat = function(ctx) { 
-		this.curFunctionSrc += 'if ';
-	};
-	Translator.prototype.exitIfStat = function(ctx) { console.log('exitIfStat'); };
-	Translator.prototype.enterElseIfStat = function(ctx) { 
-		this.curFunctionSrc += 'else if ';
-	};
-	Translator.prototype.exitElseIfStat = function(ctx) { console.log('exitElseIfStat'); };
-	Translator.prototype.enterElseStat = function(ctx) { 
-		this.curFunctionSrc += 'else ';
-	};
-	Translator.prototype.exitElseStat = function(ctx) { console.log('exitElseStat'); };
-	Translator.prototype.enterLoop = function(ctx) { 
-		this.curFunctionSrc += 'while ';
-	};
-	Translator.prototype.exitLoop = function(ctx) { console.log('exitLoop'); };
-	Translator.prototype.enterNonParenExpr = function(ctx) { console.log('enterNonParenExpr'); };
-	Translator.prototype.exitNonParenExpr = function(ctx) { console.log('exitNonParenExpr'); };
-	Translator.prototype.enterAtomExpr = function(ctx) { console.log('enterAtomExpr'); };
-	Translator.prototype.exitAtomExpr = function(ctx) { console.log('exitAtomExpr'); };
-	Translator.prototype.enterNonParenSumExpr = function(ctx) { console.log('enterNonParenSumExpr');  };
-	Translator.prototype.exitNonParenSumExpr = function(ctx) { console.log('exitNonParenSumExpr');  };
-	Translator.prototype.enterNonParenPowExpr = function(ctx) {
-		this.curFunctionSrc += 'Math.pow(';
-	};
-	Translator.prototype.exitNonParenPowExpr = function(ctx) { 
-		this.curFunctionSrc += ')';
-	};
-	Translator.prototype.enterParenExpr = function(ctx) {
-		this.curFunctionSrc += '(';
-	};
-	Translator.prototype.exitParenExpr = function(ctx) { 
-		this.curFunctionSrc += ')';
-	};
-	Translator.prototype.enterValResolv = function(ctx) { console.log('enterValResolv'); };
-	Translator.prototype.exitValResolv = function(ctx) { console.log('exitValResolv'); };
-	Translator.prototype.enterJpathResolv = function(ctx) { console.log('enterJpathResolv'); };
-	Translator.prototype.exitJpathResolv = function(ctx) { console.log('exitJpathResolv'); };
-	Translator.prototype.enterInvokeResolv = function(ctx) { console.log('enterInvokeResolv'); };
-	Translator.prototype.exitInvokeResolv = function(ctx) { console.log('exitInvokeResolv'); };
-	Translator.prototype.enterCodeBlock = function(ctx) { 
-		this.curFunctionSrc += '{';
-	};
-	Translator.prototype.exitCodeBlock = function(ctx) { 
-		this.curFunctionSrc += '}';
-	};
-	Translator.prototype.enterSentence = function(ctx) { console.log('enterSentence'); };
-	Translator.prototype.exitSentence = function(ctx) { console.log('exitSentence'); };
-	Translator.prototype.enterStatement = function(ctx) { console.log('enterStatement'); };
-	Translator.prototype.exitStatement = function(ctx) { 
-		this.curFunctionSrc += ';';
-	};
-	Translator.prototype.enterJson = function(ctx) { console.log('enterJson'); };
-	Translator.prototype.exitJson = function(ctx) { console.log('exitJson'); };
-	Translator.prototype.enterObject = function(ctx) { console.log('enterObject'); };
-	Translator.prototype.exitObject = function(ctx) { console.log('exitObject'); };
-	Translator.prototype.enterPair = function(ctx) { console.log('enterPair'); };
-	Translator.prototype.exitPair = function(ctx) { console.log('exitPair'); };
-	Translator.prototype.enterArray = function(ctx) { console.log('enterArray'); };
-	Translator.prototype.exitArray = function(ctx) { console.log('exitArray'); };
-	Translator.prototype.enterValue = function(ctx) { 
-		this.curFunctionSrc += ctx.getText();
-	};
-	Translator.prototype.exitValue = function(ctx) { console.log('exitValue'); };
- 	Translator.prototype.enterJsonPath = function(ctx) { 
- 		this.curFunctionSrc += ctx.getText();
- 	};
-	Translator.prototype.exitJsonPath = function(ctx) { console.log('exitJsonPath'); };
-	Translator.prototype.enterKeyRef = function(ctx) { console.log('enterKeyRef'); };
-	Translator.prototype.exitKeyRef = function(ctx) { console.log('exitKeyRef'); };
-	
 	return function(name, smkSource) {
 		var tree = getParseTree(smkSource);
-//		var translator = new Translator();
-//		var translator = new SmkFileWalker();
-//		try {
-//			antlr4.tree.ParseTreeWalker.DEFAULT.walk(translator, tree);
-//		} catch(e) {
-//			console.log(e);
-//		}
 		var pack = Smack.jsonCompilers.compilePackageDecl(tree.packageDecl(0));
 		var targetSource = Smack.jsonCompilers.compileSmkFile(tree)
 		return createUnit(name, smkSource, targetSource, pack);
@@ -539,7 +324,7 @@ Smack.jsonCompilers = (function(){
 		getIds : function(dottedId) {
 			var ids = [];
 			for(var i = 0; dottedId.Id(i); i++)
-				ids.push(dottedId.Id(i));
+				ids.push(dottedId.Id(i).getText());
 			return ids;
 		},
 		compilePackageDecl : function(ctx) {
@@ -577,9 +362,9 @@ Smack.jsonCompilers = (function(){
 			if(ctx instanceof antlr4.SmackParser.AtomExprContext)
 				return this.compileResolvable(ctx.resolvable(0), pack);
 			if(ctx instanceof antlr4.SmackParser.ParenExprContext)
-				return Smack.sourceGenerators.generateParenExpr(this.compileExpression(ctx.expression(0)));
-			var expr1Src = this.compileExpression(ctx.expression(0));
-			var expr2Src = this.compileExpression(ctx.expression(1));
+				return Smack.sourceGenerators.generateParenExpr(this.compileExpression(ctx.expression(0), pack));
+			var expr1Src = this.compileExpression(ctx.expression(0), pack);
+			var expr2Src = this.compileExpression(ctx.expression(1), pack);
 			if(ctx instanceof antlr4.SmackParser.SumExprContext) {
 				var isPos = true;
 				for(var i = 1; i < ctx.children.length; i++) {
@@ -632,7 +417,7 @@ Smack.jsonCompilers = (function(){
 			return Smack.sourceGenerators.generateFuncInvoke(pack, ids, resolvableSrcs);
 		},
 		compileRetStatement : function(ctx, pack) {
-			var expressionSrc = this.compileExpression(ctx.expression(0));
+			var expressionSrc = this.compileExpression(ctx.expression(0), pack);
 			return Smack.sourceGenerators.generateRetStatement(expressionSrc);
 		},
 		compileStatement : function(ctx, pack) {
@@ -647,7 +432,7 @@ Smack.jsonCompilers = (function(){
 			return src + ';';
 		},
 		compileLoop : function(ctx, pack) {
-			var expressionSrc = this.compileExpression(ctx.expression(0));
+			var expressionSrc = this.compileExpression(ctx.expression(0), pack);
 			var codeBlockSrc = this.compileCodeBlock(ctx.codeBlock(0), pack);
 			return Smack.sourceGenerators.generateLoop(expressionSrc, codeBlockSrc);
 		},
@@ -656,12 +441,12 @@ Smack.jsonCompilers = (function(){
 			return Smack.sourceGenerators.generateElseStat(codeBlockSrc);
 		},
 		compileElseIfStat : function(ctx, pack) {
-			var expressionSrc = this.compileExpression(ctx.expression(0));
+			var expressionSrc = this.compileExpression(ctx.expression(0), pack);
 			var codeBlockSrc = this.compileCodeBlock(ctx.codeBlock(0), pack);
 			return Smack.sourceGenerators.generateElseIfStat(expressionSrc, codeBlockSrc);
 		},
 		compileIfStat : function(ctx, pack) {
-			var expressionSrc = this.compileExpression(ctx.expression(0));
+			var expressionSrc = this.compileExpression(ctx.expression(0), pack);
 			var codeBlockSrc = this.compileCodeBlock(ctx.codeBlock(0), pack);
 			var elseifStatSrcs = [];
 			for(var i = 0; ctx.elseIfStat(i); i++)
@@ -793,14 +578,13 @@ Smack.sourceGenerators = (function(){
 		generateFuncInvoke : function(pack, ids, resolvableSrcs) {
 			var src = '';
 			if(ids.length > 1)
-				src += ids.join('.');
-			else if(Smack.bserver.stdLib[ids[0]])
-				src += ids[0];
+				src += 'Smack.bserver.code.' + '.' + ids.join('.');
+			else if(Smack.bserver.code[ids[0]])
+				src += 'Smack.bserver.code.' + ids[0];
 			else
 				src += pack + '.' + ids[0]
-			src += '(';
-			src += resolvableSrcs.join(', ');
-			src += ')';
+			src += '(' + resolvableSrcs.join(', ') + ')';
+			return src;	
 		},
 		generateRetStatement : function(expressionSrc) {
 			return 'return ' + expressionSrc;
@@ -831,7 +615,6 @@ Smack.sourceGenerators = (function(){
 		},
 		generateFuncDecl : function(pack, ids, codeBlockSrc) {
 			var funcPath = pack + '.' + ids[0];
-//			var serverFuncPath = 'Smack.bserver.code.' + pack + '.' + ids[0];
 			eval('if(' + pack + ' && ' + funcPath + ') throw "the function ' + funcPath + ' already exists";' )
 			var source = funcPath + ' = function(';
 			var isFirst = true;
@@ -846,196 +629,3 @@ Smack.sourceGenerators = (function(){
 		},
 	};
 })();
-
-var prot = SmkFileWalker.prototype = new antlr4.SmackListener();
-
-	prot.enterSmkFile = function(ctx) {
-		console.log(ctx.getText());
-		ctx.parser._ctx = ctx;
-		ctx.parser.exitRule();
-	};
-	prot.exitSmkFile = function(ctx) {
-	};
-	prot.enterPackageDecl = function(ctx) {
-		console.log(ctx.getText());
-		ctx.parser._ctx = ctx;
-		ctx.parser.exitRule();
-	};
-	prot.exitPackageDecl = function(ctx) {
-	};
-	prot.enterDottedId = function(ctx) {
-		console.log(ctx.getText());
-		ctx.parser._ctx = ctx;
-		ctx.parser.exitRule();
-	};
-	prot.exitDottedId = function(ctx) {
-	};
-	prot.enterVarAssign = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitVarAssign = function(ctx) {
-	};
-	prot.enterFuncDecl = function(ctx) {
-		console.log(ctx.getText());
-		ctx.parser._ctx = ctx;
-		ctx.parser.exitRule();
-	};
-	prot.exitFuncDecl = function(ctx) {
-	};
-	prot.enterFuncInvoke = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitFuncInvoke = function(ctx) {
-	};
-	prot.enterRetStatement = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitRetStatement = function(ctx) {
-	};
-	prot.enterIfStat = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitIfStat = function(ctx) {
-	};
-	prot.enterElseIfStat = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitElseIfStat = function(ctx) {
-	};
-	prot.enterElseStat = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitElseStat = function(ctx) {
-	};
-	prot.enterLoop = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitLoop = function(ctx) {
-	};
-	// Expressions
-	prot.enterGeExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitGeExpr = function(ctx) {
-	};
-	prot.enterModExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitModExpr = function(ctx) {
-	};
-	prot.enterGtExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitGtExpr = function(ctx) {
-	};
-	prot.enterAtomExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitAtomExpr = function(ctx) {
-	};
-	prot.enterParenExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitParenExpr = function(ctx) {
-	};
-	prot.enterNeqExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitNeqExpr = function(ctx) {
-	};
-	prot.enterEqExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitEqExpr = function(ctx) {
-	};
-	prot.enterLtExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitLtExpr = function(ctx) {
-	};
-	prot.enterSumExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitSumExpr = function(ctx) {
-	};
-	prot.enterLeExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitLeExpr = function(ctx) {
-	};
-	prot.enterMulExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitMulExpr = function(ctx) {
-	};
-	prot.enterDivExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitDivExpr = function(ctx) {
-	};
-	prot.enterPowExpr = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitPowExpr = function(ctx) {
-	};
-	
-	prot.enterValResolv = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitValResolv = function(ctx) {
-	};
-	prot.enterJpathResolv = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitJpathResolv = function(ctx) {
-	};
-	prot.enterInvokeResolv = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitInvokeResolv = function(ctx) {
-	};
-	prot.enterCodeBlock = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitCodeBlock = function(ctx) {
-	};
-	prot.enterSentence = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitSentence = function(ctx) {
-	};
-	prot.enterStatement = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitStatement = function(ctx) {
-	};
-	prot.enterComment = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitComment = function(ctx) {
-	};
-	prot.enterJson = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitJson = function(ctx) {
-	};
-	prot.enterObject = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitObject = function(ctx) {
-	};
-	prot.enterPair = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitPair = function(ctx) {
-	};
-	prot.enterArray = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitArray = function(ctx) {
-	};
-	prot.enterValue = function(ctx) {
-		console.log(ctx.getText());
-	};
-	prot.exitValue = function(ctx) {
-	};

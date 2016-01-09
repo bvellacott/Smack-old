@@ -15,10 +15,10 @@ func returnTrue() {
 }
 
 func callWithInput(funcName, input) {
-	exec(funcName, input);
+	ret exec(funcName, input);
 }
 
 func callWithoutInput(funcName) {
-	exec(funcName);
+	ret exec(funcName);
 }
 
