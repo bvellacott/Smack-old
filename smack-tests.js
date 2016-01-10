@@ -636,7 +636,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		
 			Smack.api.execute(conName, 'tst.parenSubThenMul', [2,3,4], function(res){ assert.equal(res, -4, '(2 - 3) * 4 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.parenSubThenDiv', [2,2,4], function(res){ assert.equal(res, -0.25, '(2 - 3) / 4 calculation failed'); });
+			Smack.api.execute(conName, 'tst.parenSubThenDiv', [2,3,4], function(res){ assert.equal(res, -0.25, '(2 - 3) / 4 calculation failed'); });
 		
 			Smack.api.execute(conName, 'tst.parenSubThenMod', [2,3,4], function(res){ assert.equal(res, -1, '(2 - 3) % 4 calculation failed'); });
 		
@@ -707,12 +707,12 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 			Smack.api.execute(conName, 'tst.addGeAdd', [1,1,-1,-2], function(res){ assert.equal(res, true, '1 + 1 >= -1 + -2 calculation failed'); });
 		
 		
-			Smack.api.execute(conName, 'tst.subEqSub', [1,1,2,0], function(res){ assert.equal(res, true, '1 - 1 == 2 - 0 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subEqSub', [3,1,2,0], function(res){ assert.equal(res, true, '3 - 1 == 2 - 0 calculation failed'); });
 		
 			Smack.api.execute(conName, 'tst.subEqSub', [1,1,1,2], function(res){ assert.equal(res, false, '1 - 1 == 1 - 2 calculation failed'); });
 		
 		
-			Smack.api.execute(conName, 'tst.subNeqSub', [1,1,2,0], function(res){ assert.equal(res, false, '1 - 1 != 2 - 0 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subNeqSub', [3,1,2,0], function(res){ assert.equal(res, false, '3 - 1 != 2 - 0 calculation failed'); });
 		
 			Smack.api.execute(conName, 'tst.subNeqSub', [1,1,1,2], function(res){ assert.equal(res, true, '1 - 1 != 1 - 2 calculation failed'); });
 		
@@ -721,11 +721,11 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		
 			Smack.api.execute(conName, 'tst.subLtSub', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 - -1 < 1 - 0 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.subLtSub', [1,1,2,0], function(res){ assert.equal(res, false, '1 - 1 < 2 - 0 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subLtSub', [1,1,2,0], function(res){ assert.equal(res, true, '1 - 1 < 2 - 0 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.subLtSub', [1,1,1,0], function(res){ assert.equal(res, false, '1 - 1 < 1 - 0 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subLtSub', [3,1,0,-2], function(res){ assert.equal(res, false, '3 - 1 < 0 - (-2) calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.subLtSub', [1,1,-1,-2], function(res){ assert.equal(res, false, '1 - 1 < -1 - -2 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subLtSub', [2,1,-1,-2], function(res){ assert.equal(res, false, '2 - 1 < -1 - -2 calculation failed'); });
 		
 		
 			Smack.api.execute(conName, 'tst.subLeSub', [1,1,2,1], function(res){ assert.equal(res, true, '1 - 1 <= 2 - 1 calculation failed'); });
@@ -734,9 +734,9 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		
 			Smack.api.execute(conName, 'tst.subLeSub', [1,1,2,0], function(res){ assert.equal(res, true, '1 - 1 <= 2 - 0 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.subLeSub', [1,1,1,0], function(res){ assert.equal(res, false, '1 - 1 <= 1 - 0 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subLeSub', [3,1,1,0], function(res){ assert.equal(res, false, '3 - 1 <= 1 - 0 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.subLeSub', [1,1,-1,-2], function(res){ assert.equal(res, false, '1 - 1 <= -1 - -2 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subLeSub', [3,1,-1,-2], function(res){ assert.equal(res, false, '3 - 1 <= -1 - -2 calculation failed'); });
 		
 		
 			Smack.api.execute(conName, 'tst.subGtSub', [1,1,2,1], function(res){ assert.equal(res, false, '1 - 1 > 2 - 1 calculation failed'); });
@@ -745,20 +745,20 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		
 			Smack.api.execute(conName, 'tst.subGtSub', [1,1,2,0], function(res){ assert.equal(res, false, '1 - 1 > 2 - 0 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.subGtSub', [1,1,1,0], function(res){ assert.equal(res, true, '1 - 1 > 1 - 0 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subGtSub', [3,1,1,0], function(res){ assert.equal(res, true, '3 - 1 > 1 - 0 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.subGtSub', [1,1,-1,-2], function(res){ assert.equal(res, true, '1 - 1 > -1 - -2 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subGtSub', [3,1,-1,-2], function(res){ assert.equal(res, true, '3 - 1 > -1 - -2 calculation failed'); });
 		
 		
-			Smack.api.execute(conName, 'tst.subGeSub', [1,1,2,1], function(res){ assert.equal(res, false, '1 - 1 >= 2 - 1 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subGeSub', [-1,1,1,1], function(res){ assert.equal(res, false, '-1 - 1 >= 1 - 1 calculation failed'); });
 		
 			Smack.api.execute(conName, 'tst.subGeSub', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 - -1 >= 1 - 0 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.subGeSub', [1,1,2,0], function(res){ assert.equal(res, true, '1 - 1 >= 2 - 0 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subGeSub', [1,1,2,0], function(res){ assert.equal(res, false, '1 - 1 >= 2 - 0 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.subGeSub', [1,1,1,0], function(res){ assert.equal(res, true, '1 - 1 >= 1 - 0 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subGeSub', [2,1,1,0], function(res){ assert.equal(res, true, '2 - 1 >= 1 - 0 calculation failed'); });
 		
-			Smack.api.execute(conName, 'tst.subGeSub', [1,1,-1,-2], function(res){ assert.equal(res, true, '1 - 1 >= -1 - -2 calculation failed'); });
+			Smack.api.execute(conName, 'tst.subGeSub', [4,1,0,-2], function(res){ assert.equal(res, true, '4 - 1 >= 0 - -2 calculation failed'); });
 		
 		
 			Smack.api.execute(conName, 'tst.mulEqMul', [1,1,1,1], function(res){ assert.equal(res, true, '1 * 1 == 1 * 1 calculation failed'); });

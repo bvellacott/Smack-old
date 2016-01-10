@@ -368,7 +368,7 @@ Smack.jsonCompilers = (function(){
 			if(ctx instanceof antlr4.SmackParser.SumExprContext) {
 				var isPos = true;
 				for(var i = 1; i < ctx.children.length; i++) {
-					var c = ctx.children[0];
+					var c = ctx.children[i];
 					if(c.symbol && c.symbol.type === antlr4.SmackParser.Minus)
 						isPos = !isPos;
 				}

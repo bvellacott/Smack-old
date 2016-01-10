@@ -77,13 +77,12 @@ loop
 	;
 	
 expression 
-	:	resolvable								# atomExpr
-	|	'(' expression ')'						# parenExpr
-	|	expression (Plus | Minus)+ expression	# sumExpr
+	:	'(' expression ')'						# parenExpr
+	|	<assoc=right>expression Pow expression	# powExpr
 	|	expression Mul expression				# mulExpr
 	|	expression Div expression				# divExpr
 	|	expression Mod expression				# modExpr
-	|	expression Pow expression				# powExpr
+	|	expression (Plus | Minus)+ expression	# sumExpr
 	|	expression Eq expression				# eqExpr
 	|	expression Neq expression				# neqExpr
 	|	expression Lt expression				# ltExpr
@@ -92,6 +91,7 @@ expression
 	|	expression Ge expression				# geExpr
 	|	expression And expression				# andExpr
 	|	expression Or expression				# orExpr
+	|	resolvable								# atomExpr
 	;
 	
 resolvable

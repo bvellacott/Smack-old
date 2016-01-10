@@ -131,11 +131,11 @@ func parenSubThenMod(a, b, c) { ret (a - b) % c; }
 func parenSubThenPow(a, b, c) { ret (a - b)^c; }
 
 
-func parenMulThenPow(a, b, c) { ret a * b^c; }
+func parenMulThenPow(a, b, c) { ret (a * b)^c; }
 
-func parenDivThenPow(a, b, c) { ret a / b^c; }
+func parenDivThenPow(a, b, c) { ret (a / b)^c; }
 
-func parenModThenPow(a, b, c) { ret a % b^c; }
+func parenModThenPow(a, b, c) { ret (a % b)^c; }
 
 
 func parenPowThenPow(a, b, c) { ret (a^b)^c; }
