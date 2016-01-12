@@ -12,6 +12,10 @@ func mod(a, b) { ret a % b; }
 
 func pow(a,b) { ret a^b; }
 
+func powParen(a,b) { ret (a)^b; }
+
+func powSignedParen(a,b) { ret -(a)^b; }
+
 // applies to strings also
 func eq(a,b) { ret a == b; }
 

@@ -191,11 +191,687 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		var con = Smack.api.getConnection(conName);
 		con.executeAllSync = true;
 		
-		var testSyncAsync = function(){
-			QUnit.test('async calls', function( assert ){
-				Papu.getFileContents('testCode/small.smk', function(res) { 
-					var source = res; 
-	
+		var testArithmetics;
+		var testVarAssign;
+		var testIfElse;
+		var testWhile;
+		var testInvoke;
+		var testSyncAsync;
+		var testAll = function() {
+			testArithmetics();
+		};
+		
+		testArithmetics = function() {
+			Papu.getFileContents('testCode/arithmetics.smk', function(source){ 
+				QUnit.test( "Arithmetics", function( assert ) {
+					
+					console.log(source);
+					Smack.api.compile(conName, {arithmetics : source});
+				
+					Smack.api.execute(conName, 'tst.add', [1.1,1.1], function(res){ assert.equal(res, 2.2, '1.1 + 1.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.add', [-1.1,1.1], function(res){ assert.equal(res, 0, '-1.1 + 1.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.add', [1.1,-1.1], function(res){ assert.equal(res, 0, '1.1 + -1.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.add', [-1.1,-1.1], function(res){ assert.equal(res, -2.2, '-1.1 + -1.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.add', [0,-1.1], function(res){ assert.equal(res, -1.1, '0 + -1.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.add', [1.1,0], function(res){ assert.equal(res, 1.1, '1.1 + 0 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.sub', [1.1,1.1], function(res){ assert.equal(res, 0, '1.1 - 1.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.sub', [-1.1,1.1], function(res){ assert.equal(res, -2.2, '-1.1 - 1.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.sub', [1.1,-1.1], function(res){ assert.equal(res, 2.2, '1.1 - -1.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.sub', [-1.1,-1.1], function(res){ assert.equal(res, 0, '-1.1 - -1.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.sub', [0,1.1], function(res){ assert.equal(res, -1.1, '0 - 1.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.sub', [-1.1,0], function(res){ assert.equal(res, -1.1, '-1.1 - 0 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.mul', [1,1], function(res){ assert.equal(res, 1, '1 * 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mul', [-1,1], function(res){ assert.equal(res, -1, '-1 * 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mul', [1,-1], function(res){ assert.equal(res, -1, '1 * -1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mul', [-1,-1], function(res){ assert.equal(res, 1, '-1 * -1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mul', [2,0.1], function(res){ assert.equal(res, 0.2, '2 * 0.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mul', [1,0], function(res){ assert.equal(res, 0, '1 * 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mul', [0,-1], function(res){ assert.equal(res, 0, '0 * -1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.div', [1,1], function(res){ assert.equal(res, 1, '1 / 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.div', [-1,1], function(res){ assert.equal(res, -1, '-1 / 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.div', [1,-1], function(res){ assert.equal(res, -1, '1 / -1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.div', [-1,-1], function(res){ assert.equal(res, 1, '-1 / -1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.div', [2,0.1], function(res){ assert.equal(res, 20, '2 / 0.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.div', [1,0], function(res){ assert.equal(res, Infinity, '1 / 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.div', [-1,0], function(res){ assert.equal(res, -Infinity, '-1 / 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.div', [0,-1], function(res){ assert.equal(res, 0, '0 / -1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.mod', [1,1], function(res){ assert.equal(res, 0, '1 % 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mod', [-1,1], function(res){ assert.equal(res, 0, '-1 % 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mod', [3,5], function(res){ assert.equal(res, 3, '3 % 5 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mod', [-3,5], function(res){ assert.equal(res, -3, '-3 % 5 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mod', [22,-5], function(res){ assert.equal(res, 2, '22 % -5 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mod', [-22,-5], function(res){ assert.equal(res, -2, '-22 % -5 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mod', [1,0.5], function(res){ assert.equal(res, 0, '1 % 0.5 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mod', [1,0], function(res){ assert.ok(isNaN(res), '1 % 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mod', [0,-1], function(res){ assert.equal(res, 0, '0 % -1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.pow', [1,1], function(res){ assert.equal(res, 1, '1^1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.pow', [-1,2], function(res){ assert.equal(res,1, '-1^2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.pow', [2,2], function(res){ assert.equal(res, 4, '2^2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.pow', [1.5,2], function(res){ assert.equal(res, 2.25, '1.5^2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.pow', [4,0.5], function(res){ assert.equal(res, 2, '4^0.5 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.pow', [2,-1], function(res){ assert.equal(res, 0.5, '2^-1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.pow', [1,0], function(res){ assert.equal(res, 1, '1^0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.pow', [0,1], function(res){ assert.equal(res, 0, '0^1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.pow', [0,-1], function(res){ assert.equal(res, Infinity, '0^-1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.pow', [-0,-1], function(res){ assert.equal(res, -Infinity, '-0^-1 calculation failed'); });
+				
+					
+					Smack.api.execute(conName, 'tst.powParen', [-1,2], function(res){ assert.equal(res, 1, '(-1)^2 sdf calculation failed'); });
+					
+					Smack.api.execute(conName, 'tst.powParen', [-1,3], function(res){ assert.equal(res, -1, '(-1)^3 sdf calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.powSignedParen', [1,2], function(res){ assert.equal(res, -1, '-(1)^2 sdf calculation failed'); });
+					
+					Smack.api.execute(conName, 'tst.powSignedParen', [-1,3], function(res){ assert.equal(res, 1, '-(-1)^3 sdf calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.eq', [1.1,1.1], function(res){ assert.equal(res, true, '1.1 == 1.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.eq', [1,-1], function(res){ assert.equal(res, false, '1 == -1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.neq', [1.1,1.1], function(res){ assert.equal(res, false, '1.1 != 1.1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.neq', [1,-1], function(res){ assert.equal(res, true, '1 != -1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.lt', [-2,1], function(res){ assert.equal(res, true, '-2 < 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.lt', [0, 0], function(res){ assert.equal(res, false, '0 < 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.lt', [1,-2], function(res){ assert.equal(res, false, '1 < -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.le', [-2,1], function(res){ assert.equal(res, true, '-2 <= 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.le', [0, 0], function(res){ assert.equal(res, true, '0 <= 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.le', [1,-2], function(res){ assert.equal(res, false, '1 <= -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.gt', [-2,1], function(res){ assert.equal(res, false, '-2 > 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.gt', [0, 0], function(res){ assert.equal(res, false, '0 > 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.gt', [1,-2], function(res){ assert.equal(res, true, '1 > -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.ge', [-2,1], function(res){ assert.equal(res, false, '-2 >= 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.ge', [0, 0], function(res){ assert.equal(res, true, '0 >= 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.ge', [1,-2], function(res){ assert.equal(res, true, '1 >= -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.plusMinusPlus', [3,2], function(res){ assert.equal(res, 1, '3 + - + 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.minusPlusMinus', [3,2], function(res){ assert.equal(res, 5, '3 - + - 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.plusThenMinus', [3,2,1], function(res){ assert.equal(res, 4, '3 + 2 - 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.minusThenPlus', [3,2,1], function(res){ assert.equal(res, 2, '3 - 2 + 1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.addThenAdd', [5,3,2], function(res){ assert.equal(res, 10, '5 + 3 + 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addThenSub', [5,3,2], function(res){ assert.equal(res, 6, '5 + 3 - 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addThenMul', [5,3,2], function(res){ assert.equal(res, 11, '5 + 3 * 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addThenDiv', [5,3,2], function(res){ assert.equal(res, 6.5, '5 + 3 / 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addThenMod', [5,3,2], function(res){ assert.equal(res, 6, '5 + 3 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addThenPow', [5,3,2], function(res){ assert.equal(res, 14, '5 + 3^2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.subThenAdd', [5,3,2], function(res){ assert.equal(res, 4, '5 - 3 + 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subThenSub', [5,3,2], function(res){ assert.equal(res, 0, '5 - 3 - 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subThenMul', [5,3,2], function(res){ assert.equal(res, -1, '5 - 3 * 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subThenDiv', [5,3,2], function(res){ assert.equal(res, 3.5, '5 - 3 / 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subThenMod', [5,3,2], function(res){ assert.equal(res, 4, '5 - 3 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subThenPow', [5,3,2], function(res){ assert.equal(res, -4, '5 - 3^2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.mulThenAdd', [5,3,2], function(res){ assert.equal(res, 17, '5 * 3 + 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulThenSub', [5,3,2], function(res){ assert.equal(res, 13, '5 * 3 - 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulThenMul', [5,3,2], function(res){ assert.equal(res, 30, '5 * 3 * 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulThenDiv', [5,3,2], function(res){ assert.equal(res, 7.5, '5 * 3 / 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulThenMod', [5,3,2], function(res){ assert.equal(res, 1, '5 * 3 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulThenPow', [5,3,2], function(res){ assert.equal(res, 45, '5 * 3^2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.divThenAdd', [6,3,2], function(res){ assert.equal(res, 4, '6 / 3 + 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divThenSub', [6,3,2], function(res){ assert.equal(res, 0, '6 / 3 - 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divThenMul', [6,3,2], function(res){ assert.equal(res, 4, '6 / 3 * 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divThenDiv', [6,3,2], function(res){ assert.equal(res, 1, '6 / 3 / 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divThenMod', [6,3,2], function(res){ assert.equal(res, 0, '6 / 3 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divThenPow', [18,3,2], function(res){ assert.equal(res, 2, '18 / 3^2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.modThenAdd', [5,3,2], function(res){ assert.equal(res, 4, '5 % 3 + 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modThenSub', [5,3,2], function(res){ assert.equal(res, 0, '5 % 3 - 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modThenMul', [5,3,2], function(res){ assert.equal(res, 4, '5 % 3 * 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modThenDiv', [5,3,2], function(res){ assert.equal(res, 1, '5 % 3 / 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modThenMod', [5,3,2], function(res){ assert.equal(res, 0, '5 % 3 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modThenPow', [5,3,2], function(res){ assert.equal(res, 5, '5 % 3^2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.powThenAdd', [2,3,4], function(res){ assert.equal(res, 12, '2^3 + 4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powThenSub', [2,3,4], function(res){ assert.equal(res, 4, '2^3 - 4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powThenMul', [2,3,4], function(res){ assert.equal(res, 32, '2^3 * 4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powThenDiv', [2,3,4], function(res){ assert.equal(res, 2, '2^3 / 4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powThenMod', [2,3,4], function(res){ assert.equal(res, 0, '2^3 % 4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powThenPow', [3,3,2], function(res){ assert.equal(res, 19683, '3^3^2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.parenAddThenMul', [2,3,4], function(res){ assert.equal(res, 20, '(2 + 3) * 4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.parenAddThenDiv', [2,2,4], function(res){ assert.equal(res, 1, '(2 + 2) / 4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.parenAddThenMod', [2,3,4], function(res){ assert.equal(res, 1, '(2 + 3) % 4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.parenAddThenPow', [1,2,3], function(res){ assert.equal(res, 27, '(1 + 2)^3 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.parenSubThenMul', [2,3,4], function(res){ assert.equal(res, -4, '(2 - 3) * 4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.parenSubThenDiv', [2,3,4], function(res){ assert.equal(res, -0.25, '(2 - 3) / 4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.parenSubThenMod', [2,3,4], function(res){ assert.equal(res, -1, '(2 - 3) % 4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.parenSubThenPow', [1,3,3], function(res){ assert.equal(res, -8, '(1 - 3)^3 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.parenMulThenPow', [2,3,4], function(res){ assert.equal(res, 1296, '(2 * 3)^4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.parenDivThenPow', [1,2,4], function(res){ assert.equal(res, 0.0625, '(1 / 2)^4 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.parenModThenPow', [2,3,4], function(res){ assert.equal(res, 16, '(2 % 3)^4 calculation failed'); });
+					
+				
+					Smack.api.execute(conName, 'tst.parenPowThenPow', [2,1,3], function(res){ assert.equal(res, 8, '(2^1)^3 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.addEqAdd', [1,1,2,0], function(res){ assert.equal(res, true, '1 + 1 == 2 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addEqAdd', [1,1,1,2], function(res){ assert.equal(res, false, '1 + 1 == 1 + 2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.addNeqAdd', [1,1,2,0], function(res){ assert.equal(res, false, '1 + 1 != 2 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addNeqAdd', [1,1,1,2], function(res){ assert.equal(res, true, '1 + 1 != 1 + 2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.addLtAdd', [1,1,2,1], function(res){ assert.equal(res, true, '1 + 1 < 2 + 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addLtAdd', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 + -1 < 1 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addLtAdd', [1,1,2,0], function(res){ assert.equal(res, false, '1 + 1 < 2 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addLtAdd', [1,1,1,0], function(res){ assert.equal(res, false, '1 + 1 < 1 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addLtAdd', [1,1,-1,-2], function(res){ assert.equal(res, false, '1 + 1 < -1 + -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.addLeAdd', [1,1,2,1], function(res){ assert.equal(res, true, '1 + 1 <= 2 + 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addLeAdd', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 + -1 <= 1 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addLeAdd', [1,1,2,0], function(res){ assert.equal(res, true, '1 + 1 <= 2 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addLeAdd', [1,1,1,0], function(res){ assert.equal(res, false, '1 + 1 <= 1 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addLeAdd', [1,1,-1,-2], function(res){ assert.equal(res, false, '1 + 1 <= -1 + -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.addGtAdd', [1,1,2,1], function(res){ assert.equal(res, false, '1 + 1 > 2 + 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addGtAdd', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 + -1 > 1 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addGtAdd', [1,1,2,0], function(res){ assert.equal(res, false, '1 + 1 > 2 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addGtAdd', [1,1,1,0], function(res){ assert.equal(res, true, '1 + 1 > 1 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addGtAdd', [1,1,-1,-2], function(res){ assert.equal(res, true, '1 + 1 > -1 + -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.addGeAdd', [1,1,2,1], function(res){ assert.equal(res, false, '1 + 1 >= 2 + 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addGeAdd', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 + -1 >= 1 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addGeAdd', [1,1,2,0], function(res){ assert.equal(res, true, '1 + 1 >= 2 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addGeAdd', [1,1,1,0], function(res){ assert.equal(res, true, '1 + 1 >= 1 + 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.addGeAdd', [1,1,-1,-2], function(res){ assert.equal(res, true, '1 + 1 >= -1 + -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.subEqSub', [3,1,2,0], function(res){ assert.equal(res, true, '3 - 1 == 2 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subEqSub', [1,1,1,2], function(res){ assert.equal(res, false, '1 - 1 == 1 - 2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.subNeqSub', [3,1,2,0], function(res){ assert.equal(res, false, '3 - 1 != 2 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subNeqSub', [1,1,1,2], function(res){ assert.equal(res, true, '1 - 1 != 1 - 2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.subLtSub', [1,1,2,1], function(res){ assert.equal(res, true, '1 - 1 < 2 - 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subLtSub', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 - -1 < 1 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subLtSub', [1,1,2,0], function(res){ assert.equal(res, true, '1 - 1 < 2 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subLtSub', [3,1,0,-2], function(res){ assert.equal(res, false, '3 - 1 < 0 - (-2) calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subLtSub', [2,1,-1,-2], function(res){ assert.equal(res, false, '2 - 1 < -1 - -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.subLeSub', [1,1,2,1], function(res){ assert.equal(res, true, '1 - 1 <= 2 - 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subLeSub', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 - -1 <= 1 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subLeSub', [1,1,2,0], function(res){ assert.equal(res, true, '1 - 1 <= 2 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subLeSub', [3,1,1,0], function(res){ assert.equal(res, false, '3 - 1 <= 1 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subLeSub', [3,1,-1,-2], function(res){ assert.equal(res, false, '3 - 1 <= -1 - -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.subGtSub', [1,1,2,1], function(res){ assert.equal(res, false, '1 - 1 > 2 - 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subGtSub', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 - -1 > 1 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subGtSub', [1,1,2,0], function(res){ assert.equal(res, false, '1 - 1 > 2 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subGtSub', [3,1,1,0], function(res){ assert.equal(res, true, '3 - 1 > 1 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subGtSub', [3,1,-1,-2], function(res){ assert.equal(res, true, '3 - 1 > -1 - -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.subGeSub', [-1,1,1,1], function(res){ assert.equal(res, false, '-1 - 1 >= 1 - 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subGeSub', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 - -1 >= 1 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subGeSub', [1,1,2,0], function(res){ assert.equal(res, false, '1 - 1 >= 2 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subGeSub', [2,1,1,0], function(res){ assert.equal(res, true, '2 - 1 >= 1 - 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.subGeSub', [4,1,0,-2], function(res){ assert.equal(res, true, '4 - 1 >= 0 - -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.mulEqMul', [1,1,1,1], function(res){ assert.equal(res, true, '1 * 1 == 1 * 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulEqMul', [1,1,1,2], function(res){ assert.equal(res, false, '1 * 1 == 1 * 2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.mulNeqMul', [1,1,1,1], function(res){ assert.equal(res, false, '1 * 1 != 1 * 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulNeqMul', [1,1,1,2], function(res){ assert.equal(res, true, '1 * 1 != 1 * 2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.mulLtMul', [1,1,2,1], function(res){ assert.equal(res, true, '1 * 1 < 2 * 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulLtMul', [-1,1,1,0], function(res){ assert.equal(res, true, '-1 * 1 < 1 * 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulLtMul', [1,1,1,1], function(res){ assert.equal(res, false, '1 * 1 < 1 * 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulLtMul', [1,1,-1,2], function(res){ assert.equal(res, false, '1 * 1 < -1 * 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulLtMul', [1,2,1,1], function(res){ assert.equal(res, false, '1 * 1 < -1 * -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.mulLeMul', [1,1,2,1], function(res){ assert.equal(res, true, '1 * 1 <= 2 * 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulLeMul', [-1,1,1,0], function(res){ assert.equal(res, true, '-1 * 1 <= 1 * 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulLeMul', [1,1,1,1], function(res){ assert.equal(res, true, '1 * 1 <= 1 * 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulLeMul', [1,1,-1,2], function(res){ assert.equal(res, false, '1 * 1 <= -1 * 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulLeMul', [1,2,1,1], function(res){ assert.equal(res, false, '1 * 2 <= 1 * 1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.mulGtMul', [1,1,2,1], function(res){ assert.equal(res, false, '1 * 1 > 2 * 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulGtMul', [-1,1,1,0], function(res){ assert.equal(res, false, '-1 * 1 > 1 * 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulGtMul', [1,1,1,1], function(res){ assert.equal(res, false, '1 * 1 > 1 * 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulGtMul', [1,1,-1,2], function(res){ assert.equal(res, true, '1 * 1 > -1 * 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulGtMul', [1,2,1,1], function(res){ assert.equal(res, true, '1 * 2 > 1 * 1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.mulGeMul', [1,1,2,1], function(res){ assert.equal(res, false, '1 * 1 >= 2 * 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulGeMul', [-1,1,1,0], function(res){ assert.equal(res, false, '-1 * 1 >= 1 * 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulGeMul', [1,1,1,1], function(res){ assert.equal(res, true, '1 * 1 >= 1 * 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulGeMul', [1,1,-1,2], function(res){ assert.equal(res, true, '1 * 1 >= -1 * 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.mulGeMul', [1,2,1,1], function(res){ assert.equal(res, true, '1 * 2 >= 1 * 1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.divEqDiv', [1,1,1,1], function(res){ assert.equal(res, true, '1 / 1 == 1 / 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divEqDiv', [1,1,1,2], function(res){ assert.equal(res, false, '1 / 1 == 1 / 2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.divNeqDiv', [1,1,1,1], function(res){ assert.equal(res, false, '1 / 1 != 1 / 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divNeqDiv', [1,1,1,2], function(res){ assert.equal(res, true, '1 / 1 != 1 / 2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.divLtDiv', [1,1,2,1], function(res){ assert.equal(res, true, '1 / 1 < 2 / 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divLtDiv', [-1,1,1,0], function(res){ assert.equal(res, true, '-1 / 1 < 1 / 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divLtDiv', [1,1,1,1], function(res){ assert.equal(res, false, '1 / 1 < 1 / 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divLtDiv', [1,1,-1,2], function(res){ assert.equal(res, false, '1 / 1 < -1 / 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divLtDiv', [1,2,-1,-2], function(res){ assert.equal(res, false, '1 / 1 < -1 / -2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.divLeDiv', [1,1,2,1], function(res){ assert.equal(res, true, '1 / 1 <= 2 / 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divLeDiv', [-1,1,1,0], function(res){ assert.equal(res, true, '-1 / 1 <= 1 / 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divLeDiv', [1,1,1,1], function(res){ assert.equal(res, true, '1 / 1 <= 1 / 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divLeDiv', [1,1,-1,2], function(res){ assert.equal(res, false, '1 / 1 <= -1 / 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divLeDiv', [1,2,1,1], function(res){ assert.equal(res, true, '1 / 2 <= 1 / 1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.divGtDiv', [1,1,2,1], function(res){ assert.equal(res, false, '1 / 1 > 2 / 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divGtDiv', [-1,1,1,0], function(res){ assert.equal(res, false, '-1 / 1 > 1 / 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divGtDiv', [1,1,1,1], function(res){ assert.equal(res, false, '1 / 1 > 1 / 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divGtDiv', [1,1,-1,2], function(res){ assert.equal(res, true, '1 / 1 > -1 / 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divGtDiv', [1,2,1,1], function(res){ assert.equal(res, false, '1 / 2 > 1 / 1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.divGeDiv', [1,1,2,1], function(res){ assert.equal(res, false, '1 / 1 >= 2 / 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divGeDiv', [-1,1,1,0], function(res){ assert.equal(res, false, '-1 / 1 >= 1 / 0 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divGeDiv', [1,1,1,1], function(res){ assert.equal(res, true, '1 / 1 >= 1 / 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divGeDiv', [1,1,-1,2], function(res){ assert.equal(res, true, '1 / 1 >= -1 / 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.divGeDiv', [1,2,1,1], function(res){ assert.equal(res, false, '1 / 2 >= 1 / 1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.modEqMod', [1,1,1,1], function(res){ assert.equal(res, true, '1 % 1 == 1 % 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modEqMod', [1,1,1,2], function(res){ assert.equal(res, false, '1 % 1 == 1 % 2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.modNeqMod', [1,1,1,1], function(res){ assert.equal(res, false, '1 % 1 != 1 % 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modNeqMod', [1,1,1,2], function(res){ assert.equal(res, true, '1 % 1 != 1 % 2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.modLtMod', [1,1,1,2], function(res){ assert.equal(res, true, '1 % 1 < 1 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modLtMod', [-1,1,1,2], function(res){ assert.equal(res, true, '-1 % 1 < 1 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modLtMod', [1,1,1,1], function(res){ assert.equal(res, false, '1 % 1 < 1 % 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modLtMod', [1,1,-1,2], function(res){ assert.equal(res, false, '1 % 1 < -1 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modLtMod', [1,2,1,1], function(res){ assert.equal(res, false, '1 % 2 < 1 % 1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.modLeMod', [1,1,1,2], function(res){ assert.equal(res, true, '1 % 1 <= 1 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modLeMod', [-1,1,1,2], function(res){ assert.equal(res, true, '-1 % 1 <= 1 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modLeMod', [1,1,1,1], function(res){ assert.equal(res, true, '1 % 1 <= 1 % 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modLeMod', [1,1,-1,2], function(res){ assert.equal(res, false, '1 % 1 <= -1 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modLeMod', [1,2,1,1], function(res){ assert.equal(res, false, '1 % 2 <= 1 % 1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.modGtMod', [1,1,1,2], function(res){ assert.equal(res, false, '1 % 1 > 1 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modGtMod', [-1,1,1,2], function(res){ assert.equal(res, false, '-1 % 1 > 1 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modGtMod', [1,1,1,1], function(res){ assert.equal(res, false, '1 % 1 > 1 % 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modGtMod', [1,1,-1,2], function(res){ assert.equal(res, true, '1 % 1 > -1 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modGtMod', [1,2,1,1], function(res){ assert.equal(res, true, '1 % 2 > 1 % 1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.modGeMod', [1,1,1,2], function(res){ assert.equal(res, false, '1 % 1 <= 1 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modGeMod', [-1,1,1,2], function(res){ assert.equal(res, false, '-1 % 1 <= 1 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modGeMod', [1,1,1,1], function(res){ assert.equal(res, true, '1 % 1 >= 1 % 1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modGeMod', [1,1,-1,2], function(res){ assert.equal(res, true, '1 % 1 >= -1 % 2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.modGeMod', [1,2,1,1], function(res){ assert.equal(res, true, '1 % 2 >= 1 % 1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.powEqPow', [1,1,1,1], function(res){ assert.equal(res, true, '1^1 == 1^1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powEqPow', [1,1,2,1], function(res){ assert.equal(res, false, '1^1 == 1^2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.powNeqPow', [1,1,1,1], function(res){ assert.equal(res, false, '1^1 != 1^1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powNeqPow', [1,1,2,1], function(res){ assert.equal(res, true, '1^1 != 1^2 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.powLtPow', [1,1,2,1], function(res){ assert.equal(res, true, '1^1 < 1^2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powLtPow', [-1,1,1,2], function(res){ assert.equal(res, true, '-1^1 < 1^2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powLtPow', [1,1,1,1], function(res){ assert.equal(res, false, '1^1 < 1^1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powLtPow', [1,-2,1,-1], function(res){ assert.equal(res, false, '1^-2 < 1^-1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powLtPow', [2,1,1,1], function(res){ assert.equal(res, false, '2^1 < 1^1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.powLePow', [1,1,2,1], function(res){ assert.equal(res, true, '1^1 <= 1^2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powLePow', [-1,1,1,2], function(res){ assert.equal(res, true, '-1^1 <= 1^2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powLePow', [1,1,1,1], function(res){ assert.equal(res, true, '1^1 <= 1^1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powLePow', [2,-1,2,-2], function(res){ assert.equal(res, false, '2^-1 <= 2^-2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powLePow', [2,1,1,1], function(res){ assert.equal(res, false, '2^1 <= 1^1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.powGtPow', [1,1,2,1], function(res){ assert.equal(res, false, '1^1 > 1^2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powGtPow', [-1,1,1,2], function(res){ assert.equal(res, false, '-1^1 > 1^2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powGtPow', [1,1,1,1], function(res){ assert.equal(res, false, '1^1 > 1^1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powGtPow', [1,1,-2,-2], function(res){ assert.equal(res, true, '1^1 > 2^-2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powGtPow', [2,1,1,1], function(res){ assert.equal(res, true, '2^1 > 1^1 calculation failed'); });
+				
+				
+					Smack.api.execute(conName, 'tst.powGePow', [1,1,2,1], function(res){ assert.equal(res, false, '1^1 <= 1^2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powGePow', [-1,1,1,2], function(res){ assert.equal(res, false, '-1^1 <= 1^2 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powGePow', [1,1,1,1], function(res){ assert.equal(res, true, '1^1 >= 1^1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powGePow', [1,-1,-1,1], function(res){ assert.equal(res, true, '1^-1 >= 1^1 calculation failed'); });
+				
+					Smack.api.execute(conName, 'tst.powGePow', [2,1,1,1], function(res){ assert.equal(res, true, '2^1 >= 1^1 calculation failed'); });
+				
+					Smack.api.delAll(conName);
+					
+					testVarAssign();
+				});
+			});
+		}
+		testVarAssign = function() {
+			Papu.getFileContents('testCode/varAssign.smk', function(source){ 
+				QUnit.test( "Assign", function( assert ) {
+					console.log(source);
+					Smack.api.compile(conName, {varAssign : source});
+				
+					Smack.api.execute(conName, 'tst.assingAndCompare', [1.1, 2.2], function(res){ assert.equal(res, true, 'Variable assign calculation failed'); });
+					
+					Smack.api.delAll(conName);
+					
+					testIfElse();
+				});
+			});
+		}
+		testIfElse = function() {
+			Papu.getFileContents('testCode/ifElse.smk', function(source){ 
+				QUnit.test( "If Else", function( assert ) {
+					console.log(source);
+					Smack.api.compile(conName, {ifElse : source});
+				
+					Smack.api.execute(conName, 'tst.ifOneElseIfTwoElse', [1], function(res){ assert.equal(res, 1, 'If part of if else if else failed'); });
+				
+					Smack.api.execute(conName, 'tst.ifOneElseIfTwoElse', [2], function(res){ assert.equal(res, 2, 'Else if part of if else if else failed'); });
+				
+					Smack.api.execute(conName, 'tst.ifOneElseIfTwoElse', [3], function(res){ assert.equal(res, false, 'Else part of if else if else failed'); });
+				
+					Smack.api.execute(conName, 'tst.ifOneElse', [1], function(res){ assert.equal(res, 1, 'If part of if else failed'); });
+				
+					Smack.api.execute(conName, 'tst.ifOneElse', [2], function(res){ assert.equal(res, false, 'Else part of if else failed'); });
+					
+					Smack.api.delAll(conName);
+					
+					testWhile();
+				});
+			});
+		}
+		testWhile = function() {
+			Papu.getFileContents('testCode/while.smk', function(source){ 
+				QUnit.test( "While and exec()", function( assert ) {
+					console.log(source);
+					Smack.api.compile(conName, {'while' : source});
+				
+					Smack.api.execute(conName, 'tst.addOneWhileLessThan', [10000], function(res){ assert.equal(res, 10000, 'While loop test failed'); });
+				
+					Smack.api.execute(conName, 'tst.callWithInput', ['tst.addOneWhileLessThan', [10000]], function(res){ assert.equal(res, 10000, 'Exec with input test failed'); });
+					
+					Smack.api.execute(conName, 'tst.callWithoutInput', ['tst.returnTrue'], function(res){ assert.equal(res, true, 'Exec without input test failed'); });
+					
+					Smack.api.delAll(conName);
+					
+					testInvoke();
+				});
+			});
+		}
+		testInvoke = function() {
+			Papu.getFileContents('testCode/invoke.smk', function(source){ 
+				QUnit.test( "Invoke", function( assert ) {
+					console.log(source);
+					Smack.api.compile(conName, {'invoke' : source});
+				
+					Smack.api.execute(conName, 'tst.invokeAdd', [1, 1], function(res){ assert.equal(res, 2, 'Invokation with parameters failed'); });
+				
+					Smack.api.execute(conName, 'tst.invokeTrue', undefined, function(res){ assert.equal(res, true, 'Invokation without parameters failed'); });
+					
+					Smack.api.delAll(conName);
+					
+					testSyncAsync();
+				});
+			});
+		}
+		
+		testSyncAsync = function(){
+			Papu.getFileContents('testCode/small.smk', function(source) { 
+				QUnit.test('async calls', function( assert ){
 					// sync
 					Smack.api.getConnection(conName).executeAllSync = true;
 					
@@ -362,7 +1038,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 						assert.ok(!delAllComplete, "Delete all shouldn't have completed before wait(100) execution");
 					});
 					
-					Smack.api.delAll(conName, source, function(res) { delAllComplete = true; });
+					Smack.api.delAll(conName, function(res) { delAllComplete = true; });
 					
 					Smack.api.execute(conName, 'wait', [0], function(res) { 
 						wait0Complete = true;
@@ -370,674 +1046,10 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 					});
 	
 					// One last sync call to make sure execution doesn't continue before all tests have run
-					Smack.api.delAll(conName, source);
-					
-				});
+					Smack.api.delAll(conName, function(res) { delAllComplete = true; });
+				 });
 			});
 		}
-		
-		var testContext = (function(tearDown){
-			var tstCount = 0;
-			
-			return {
-				logonTest : function() { tstCount++; },
-				logoutTest : function(){
-					if(tstCount == 0)
-						return;
-					tstCount--;
-					if(tstCount <= 0)
-						tearDown();
-				},
-			};
-		})(function() {
-			testSyncAsync();
-//			Smack.api.closeConnection(conName);
-		});
-		
-		testContext.logonTest();
-		QUnit.test( "Arithmetics", function( assert ) {
-			
-			var source;
-			Papu.getFileContents('testCode/arithmetics.smk', function(res){ source = res; });
-			console.log(source);
-			Smack.api.compile(conName, {arithmetics : source});
-		
-			Smack.api.execute(conName, 'tst.add', [1.1,1.1], function(res){ assert.equal(res, 2.2, '1.1 + 1.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.add', [-1.1,1.1], function(res){ assert.equal(res, 0, '-1.1 + 1.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.add', [1.1,-1.1], function(res){ assert.equal(res, 0, '1.1 + -1.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.add', [-1.1,-1.1], function(res){ assert.equal(res, -2.2, '-1.1 + -1.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.add', [0,-1.1], function(res){ assert.equal(res, -1.1, '0 + -1.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.add', [1.1,0], function(res){ assert.equal(res, 1.1, '1.1 + 0 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.sub', [1.1,1.1], function(res){ assert.equal(res, 0, '1.1 - 1.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.sub', [-1.1,1.1], function(res){ assert.equal(res, -2.2, '-1.1 - 1.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.sub', [1.1,-1.1], function(res){ assert.equal(res, 2.2, '1.1 - -1.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.sub', [-1.1,-1.1], function(res){ assert.equal(res, 0, '-1.1 - -1.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.sub', [0,1.1], function(res){ assert.equal(res, -1.1, '0 - 1.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.sub', [-1.1,0], function(res){ assert.equal(res, -1.1, '-1.1 - 0 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.mul', [1,1], function(res){ assert.equal(res, 1, '1 * 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mul', [-1,1], function(res){ assert.equal(res, -1, '-1 * 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mul', [1,-1], function(res){ assert.equal(res, -1, '1 * -1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mul', [-1,-1], function(res){ assert.equal(res, 1, '-1 * -1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mul', [2,0.1], function(res){ assert.equal(res, 0.2, '2 * 0.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mul', [1,0], function(res){ assert.equal(res, 0, '1 * 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mul', [0,-1], function(res){ assert.equal(res, 0, '0 * -1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.div', [1,1], function(res){ assert.equal(res, 1, '1 / 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.div', [-1,1], function(res){ assert.equal(res, -1, '-1 / 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.div', [1,-1], function(res){ assert.equal(res, -1, '1 / -1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.div', [-1,-1], function(res){ assert.equal(res, 1, '-1 / -1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.div', [2,0.1], function(res){ assert.equal(res, 20, '2 / 0.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.div', [1,0], function(res){ assert.equal(res, Infinity, '1 / 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.div', [-1,0], function(res){ assert.equal(res, -Infinity, '-1 / 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.div', [0,-1], function(res){ assert.equal(res, 0, '0 / -1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.mod', [1,1], function(res){ assert.equal(res, 0, '1 % 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mod', [-1,1], function(res){ assert.equal(res, 0, '-1 % 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mod', [3,5], function(res){ assert.equal(res, 3, '3 % 5 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mod', [-3,5], function(res){ assert.equal(res, -3, '-3 % 5 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mod', [22,-5], function(res){ assert.equal(res, 2, '22 % -5 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mod', [-22,-5], function(res){ assert.equal(res, -2, '-22 % -5 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mod', [1,0.5], function(res){ assert.equal(res, 0, '1 % 0.5 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mod', [1,0], function(res){ assert.ok(isNaN(res), '1 % 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mod', [0,-1], function(res){ assert.equal(res, 0, '0 % -1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.pow', [1,1], function(res){ assert.equal(res, 1, '1^1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.pow', [-1,2], function(res){ assert.equal(res, -1, '-1^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.pow', [2,2], function(res){ assert.equal(res, 4, '2^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.pow', [1.5,2], function(res){ assert.equal(res, 2.25, '1.5^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.pow', [4,0.5], function(res){ assert.equal(res, 2, '4^0.5 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.pow', [2,-1], function(res){ assert.equal(res, 0.5, '2^-1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.pow', [1,0], function(res){ assert.equal(res, 1, '1^0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.pow', [0,1], function(res){ assert.equal(res, 0, '0^1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.pow', [0,-1], function(res){ assert.equal(res, Infinity, '0^-1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.pow', [-0,-1], function(res){ assert.equal(res, -Infinity, '-0^-1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.eq', [1.1,1.1], function(res){ assert.equal(res, true, '1.1 == 1.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.eq', [1,-1], function(res){ assert.equal(res, false, '1 == -1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.neq', [1.1,1.1], function(res){ assert.equal(res, false, '1.1 != 1.1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.neq', [1,-1], function(res){ assert.equal(res, true, '1 != -1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.lt', [-2,1], function(res){ assert.equal(res, true, '-2 < 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.lt', [0, 0], function(res){ assert.equal(res, false, '0 < 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.lt', [1,-2], function(res){ assert.equal(res, false, '1 < -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.le', [-2,1], function(res){ assert.equal(res, true, '-2 <= 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.le', [0, 0], function(res){ assert.equal(res, true, '0 <= 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.le', [1,-2], function(res){ assert.equal(res, false, '1 <= -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.gt', [-2,1], function(res){ assert.equal(res, false, '-2 > 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.gt', [0, 0], function(res){ assert.equal(res, false, '0 > 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.gt', [1,-2], function(res){ assert.equal(res, true, '1 > -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.ge', [-2,1], function(res){ assert.equal(res, false, '-2 >= 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.ge', [0, 0], function(res){ assert.equal(res, true, '0 >= 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.ge', [1,-2], function(res){ assert.equal(res, true, '1 >= -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.plusMinusPlus', [3,2], function(res){ assert.equal(res, 1, '3 + - + 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.minusPlusMinus', [3,2], function(res){ assert.equal(res, 5, '3 - + - 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.plusThenMinus', [3,2,1], function(res){ assert.equal(res, 4, '3 + 2 - 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.minusThenPlus', [3,2,1], function(res){ assert.equal(res, 2, '3 - 2 + 1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.addThenAdd', [5,3,2], function(res){ assert.equal(res, 10, '5 + 3 + 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addThenSub', [5,3,2], function(res){ assert.equal(res, 6, '5 + 3 - 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addThenMul', [5,3,2], function(res){ assert.equal(res, 11, '5 + 3 * 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addThenDiv', [5,3,2], function(res){ assert.equal(res, 6.5, '5 + 3 / 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addThenMod', [5,3,2], function(res){ assert.equal(res, 6, '5 + 3 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addThenPow', [5,3,2], function(res){ assert.equal(res, 14, '5 + 3^2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.subThenAdd', [5,3,2], function(res){ assert.equal(res, 4, '5 - 3 + 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subThenSub', [5,3,2], function(res){ assert.equal(res, 0, '5 - 3 - 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subThenMul', [5,3,2], function(res){ assert.equal(res, -1, '5 - 3 * 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subThenDiv', [5,3,2], function(res){ assert.equal(res, 3.5, '5 - 3 / 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subThenMod', [5,3,2], function(res){ assert.equal(res, 4, '5 - 3 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subThenPow', [5,3,2], function(res){ assert.equal(res, -4, '5 - 3^2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.mulThenAdd', [5,3,2], function(res){ assert.equal(res, 17, '5 * 3 + 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulThenSub', [5,3,2], function(res){ assert.equal(res, 13, '5 * 3 - 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulThenMul', [5,3,2], function(res){ assert.equal(res, 30, '5 * 3 * 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulThenDiv', [5,3,2], function(res){ assert.equal(res, 7.5, '5 * 3 / 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulThenMod', [5,3,2], function(res){ assert.equal(res, 1, '5 * 3 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulThenPow', [5,3,2], function(res){ assert.equal(res, 45, '5 * 3^2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.divThenAdd', [6,3,2], function(res){ assert.equal(res, 4, '6 / 3 + 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divThenSub', [6,3,2], function(res){ assert.equal(res, 0, '6 / 3 - 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divThenMul', [6,3,2], function(res){ assert.equal(res, 4, '6 / 3 * 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divThenDiv', [6,3,2], function(res){ assert.equal(res, 1, '6 / 3 / 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divThenMod', [6,3,2], function(res){ assert.equal(res, 0, '6 / 3 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divThenPow', [18,3,2], function(res){ assert.equal(res, 2, '18 / 3^2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.modThenAdd', [5,3,2], function(res){ assert.equal(res, 4, '5 % 3 + 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modThenSub', [5,3,2], function(res){ assert.equal(res, 0, '5 % 3 - 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modThenMul', [5,3,2], function(res){ assert.equal(res, 4, '5 % 3 * 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modThenDiv', [5,3,2], function(res){ assert.equal(res, 1, '5 % 3 / 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modThenMod', [5,3,2], function(res){ assert.equal(res, 0, '5 % 3 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modThenPow', [18,3,2], function(res){ assert.equal(res, 5, '5 % 3^2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.powThenAdd', [2,3,4], function(res){ assert.equal(res, 12, '2^3 + 4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powThenSub', [2,3,4], function(res){ assert.equal(res, 4, '2^3 - 4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powThenMul', [2,3,4], function(res){ assert.equal(res, 32, '2^3 * 4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powThenDiv', [2,3,4], function(res){ assert.equal(res, 2, '2^3 / 4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powThenMod', [2,3,4], function(res){ assert.equal(res, 0, '2^3 % 4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powThenPow', [3,3,2], function(res){ assert.equal(res, 19683, '3^3^2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.parenAddThenMul', [2,3,4], function(res){ assert.equal(res, 20, '(2 + 3) * 4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.parenAddThenDiv', [2,2,4], function(res){ assert.equal(res, 1, '(2 + 2) / 4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.parenAddThenMod', [2,3,4], function(res){ assert.equal(res, 1, '(2 + 3) % 4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.parenAddThenPow', [1,2,3], function(res){ assert.equal(res, 27, '(1 + 2)^3 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.parenSubThenMul', [2,3,4], function(res){ assert.equal(res, -4, '(2 - 3) * 4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.parenSubThenDiv', [2,3,4], function(res){ assert.equal(res, -0.25, '(2 - 3) / 4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.parenSubThenMod', [2,3,4], function(res){ assert.equal(res, -1, '(2 - 3) % 4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.parenSubThenPow', [1,3,3], function(res){ assert.equal(res, -8, '(1 - 3)^3 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.parenMulThenPow', [2,3,4], function(res){ assert.equal(res, 1296, '(2 * 3)^4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.parenDivThenPow', [1,2,3], function(res){ assert.equal(res, 0.0625, '(1 / 2)^4 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.parenModThenPow', [2,3,4], function(res){ assert.equal(res, 16, '(2 % 3)^4 calculation failed'); });
-			
-		
-			Smack.api.execute(conName, 'tst.parenPowThenPow', [2,1,3], function(res){ assert.equal(res, 8, '(2^1)^3 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.addEqAdd', [1,1,2,0], function(res){ assert.equal(res, true, '1 + 1 == 2 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addEqAdd', [1,1,1,2], function(res){ assert.equal(res, false, '1 + 1 == 1 + 2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.addNeqAdd', [1,1,2,0], function(res){ assert.equal(res, false, '1 + 1 != 2 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addNeqAdd', [1,1,1,2], function(res){ assert.equal(res, true, '1 + 1 != 1 + 2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.addLtAdd', [1,1,2,1], function(res){ assert.equal(res, true, '1 + 1 < 2 + 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addLtAdd', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 + -1 < 1 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addLtAdd', [1,1,2,0], function(res){ assert.equal(res, false, '1 + 1 < 2 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addLtAdd', [1,1,1,0], function(res){ assert.equal(res, false, '1 + 1 < 1 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addLtAdd', [1,1,-1,-2], function(res){ assert.equal(res, false, '1 + 1 < -1 + -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.addLeAdd', [1,1,2,1], function(res){ assert.equal(res, true, '1 + 1 <= 2 + 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addLeAdd', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 + -1 <= 1 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addLeAdd', [1,1,2,0], function(res){ assert.equal(res, true, '1 + 1 <= 2 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addLeAdd', [1,1,1,0], function(res){ assert.equal(res, false, '1 + 1 <= 1 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addLeAdd', [1,1,-1,-2], function(res){ assert.equal(res, false, '1 + 1 <= -1 + -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.addGtAdd', [1,1,2,1], function(res){ assert.equal(res, false, '1 + 1 > 2 + 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addGtAdd', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 + -1 > 1 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addGtAdd', [1,1,2,0], function(res){ assert.equal(res, false, '1 + 1 > 2 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addGtAdd', [1,1,1,0], function(res){ assert.equal(res, true, '1 + 1 > 1 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addGtAdd', [1,1,-1,-2], function(res){ assert.equal(res, true, '1 + 1 > -1 + -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.addGeAdd', [1,1,2,1], function(res){ assert.equal(res, false, '1 + 1 >= 2 + 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addGeAdd', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 + -1 >= 1 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addGeAdd', [1,1,2,0], function(res){ assert.equal(res, true, '1 + 1 >= 2 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addGeAdd', [1,1,1,0], function(res){ assert.equal(res, true, '1 + 1 >= 1 + 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.addGeAdd', [1,1,-1,-2], function(res){ assert.equal(res, true, '1 + 1 >= -1 + -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.subEqSub', [3,1,2,0], function(res){ assert.equal(res, true, '3 - 1 == 2 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subEqSub', [1,1,1,2], function(res){ assert.equal(res, false, '1 - 1 == 1 - 2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.subNeqSub', [3,1,2,0], function(res){ assert.equal(res, false, '3 - 1 != 2 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subNeqSub', [1,1,1,2], function(res){ assert.equal(res, true, '1 - 1 != 1 - 2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.subLtSub', [1,1,2,1], function(res){ assert.equal(res, true, '1 - 1 < 2 - 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subLtSub', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 - -1 < 1 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subLtSub', [1,1,2,0], function(res){ assert.equal(res, true, '1 - 1 < 2 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subLtSub', [3,1,0,-2], function(res){ assert.equal(res, false, '3 - 1 < 0 - (-2) calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subLtSub', [2,1,-1,-2], function(res){ assert.equal(res, false, '2 - 1 < -1 - -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.subLeSub', [1,1,2,1], function(res){ assert.equal(res, true, '1 - 1 <= 2 - 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subLeSub', [-1,-1,1,0], function(res){ assert.equal(res, true, '-1 - -1 <= 1 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subLeSub', [1,1,2,0], function(res){ assert.equal(res, true, '1 - 1 <= 2 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subLeSub', [3,1,1,0], function(res){ assert.equal(res, false, '3 - 1 <= 1 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subLeSub', [3,1,-1,-2], function(res){ assert.equal(res, false, '3 - 1 <= -1 - -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.subGtSub', [1,1,2,1], function(res){ assert.equal(res, false, '1 - 1 > 2 - 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subGtSub', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 - -1 > 1 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subGtSub', [1,1,2,0], function(res){ assert.equal(res, false, '1 - 1 > 2 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subGtSub', [3,1,1,0], function(res){ assert.equal(res, true, '3 - 1 > 1 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subGtSub', [3,1,-1,-2], function(res){ assert.equal(res, true, '3 - 1 > -1 - -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.subGeSub', [-1,1,1,1], function(res){ assert.equal(res, false, '-1 - 1 >= 1 - 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subGeSub', [-1,-1,1,0], function(res){ assert.equal(res, false, '-1 - -1 >= 1 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subGeSub', [1,1,2,0], function(res){ assert.equal(res, false, '1 - 1 >= 2 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subGeSub', [2,1,1,0], function(res){ assert.equal(res, true, '2 - 1 >= 1 - 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.subGeSub', [4,1,0,-2], function(res){ assert.equal(res, true, '4 - 1 >= 0 - -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.mulEqMul', [1,1,1,1], function(res){ assert.equal(res, true, '1 * 1 == 1 * 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulEqMul', [1,1,1,2], function(res){ assert.equal(res, false, '1 * 1 == 1 * 2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.mulNeqMul', [1,1,1,1], function(res){ assert.equal(res, false, '1 * 1 != 1 * 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulNeqMul', [1,1,1,2], function(res){ assert.equal(res, true, '1 * 1 != 1 * 2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.mulLtMul', [1,1,2,1], function(res){ assert.equal(res, true, '1 * 1 < 2 * 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulLtMul', [-1,1,1,0], function(res){ assert.equal(res, true, '-1 * 1 < 1 * 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulLtMul', [1,1,1,1], function(res){ assert.equal(res, false, '1 * 1 < 1 * 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulLtMul', [1,1,-1,2], function(res){ assert.equal(res, false, '1 * 1 < -1 * 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulLtMul', [1,2,1,1], function(res){ assert.equal(res, false, '1 * 1 < -1 * -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.mulLeMul', [1,1,2,1], function(res){ assert.equal(res, true, '1 * 1 <= 2 * 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulLeMul', [-1,1,1,0], function(res){ assert.equal(res, true, '-1 * 1 <= 1 * 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulLeMul', [1,1,1,1], function(res){ assert.equal(res, true, '1 * 1 <= 1 * 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulLeMul', [1,1,-1,2], function(res){ assert.equal(res, false, '1 * 1 <= -1 * 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulLeMul', [1,2,1,1], function(res){ assert.equal(res, false, '1 * 2 <= 1 * 1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.mulGtMul', [1,1,2,1], function(res){ assert.equal(res, false, '1 * 1 > 2 * 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulGtMul', [-1,1,1,0], function(res){ assert.equal(res, false, '-1 * 1 > 1 * 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulGtMul', [1,1,1,1], function(res){ assert.equal(res, false, '1 * 1 > 1 * 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulGtMul', [1,1,-1,2], function(res){ assert.equal(res, true, '1 * 1 > -1 * 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulGtMul', [1,2,1,1], function(res){ assert.equal(res, true, '1 * 2 > 1 * 1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.mulGeMul', [1,1,2,1], function(res){ assert.equal(res, false, '1 * 1 >= 2 * 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulGeMul', [-1,1,1,0], function(res){ assert.equal(res, false, '-1 * 1 >= 1 * 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulGeMul', [1,1,1,1], function(res){ assert.equal(res, true, '1 * 1 >= 1 * 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulGeMul', [1,1,-1,2], function(res){ assert.equal(res, true, '1 * 1 >= -1 * 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.mulGeMul', [1,2,1,1], function(res){ assert.equal(res, true, '1 * 2 >= 1 * 1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.divEqDiv', [1,1,1,1], function(res){ assert.equal(res, true, '1 / 1 == 1 / 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divEqDiv', [1,1,1,2], function(res){ assert.equal(res, false, '1 / 1 == 1 / 2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.divNeqDiv', [1,1,1,1], function(res){ assert.equal(res, false, '1 / 1 != 1 / 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divNeqDiv', [1,1,1,2], function(res){ assert.equal(res, true, '1 / 1 != 1 / 2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.divLtDiv', [1,1,2,1], function(res){ assert.equal(res, true, '1 / 1 < 2 / 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divLtDiv', [-1,1,1,0], function(res){ assert.equal(res, true, '-1 / 1 < 1 / 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divLtDiv', [1,1,1,1], function(res){ assert.equal(res, false, '1 / 1 < 1 / 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divLtDiv', [1,1,-1,2], function(res){ assert.equal(res, false, '1 / 1 < -1 / 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divLtDiv', [1,2,-1,-2], function(res){ assert.equal(res, false, '1 / 1 < -1 / -2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.divLeDiv', [1,1,2,1], function(res){ assert.equal(res, true, '1 / 1 <= 2 / 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divLeDiv', [-1,1,1,0], function(res){ assert.equal(res, true, '-1 / 1 <= 1 / 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divLeDiv', [1,1,1,1], function(res){ assert.equal(res, true, '1 / 1 <= 1 / 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divLeDiv', [1,1,-1,2], function(res){ assert.equal(res, false, '1 / 1 <= -1 / 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divLeDiv', [1,2,1,1], function(res){ assert.equal(res, true, '1 / 2 <= 1 / 1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.divGtDiv', [1,1,2,1], function(res){ assert.equal(res, false, '1 / 1 > 2 / 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divGtDiv', [-1,1,1,0], function(res){ assert.equal(res, false, '-1 / 1 > 1 / 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divGtDiv', [1,1,1,1], function(res){ assert.equal(res, false, '1 / 1 > 1 / 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divGtDiv', [1,1,-1,2], function(res){ assert.equal(res, true, '1 / 1 > -1 / 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divGtDiv', [1,2,1,1], function(res){ assert.equal(res, false, '1 / 2 > 1 / 1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.divGeDiv', [1,1,2,1], function(res){ assert.equal(res, false, '1 / 1 >= 2 / 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divGeDiv', [-1,1,1,0], function(res){ assert.equal(res, false, '-1 / 1 >= 1 / 0 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divGeDiv', [1,1,1,1], function(res){ assert.equal(res, true, '1 / 1 >= 1 / 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divGeDiv', [1,1,-1,2], function(res){ assert.equal(res, true, '1 / 1 >= -1 / 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.divGeDiv', [1,2,1,1], function(res){ assert.equal(res, false, '1 / 2 >= 1 / 1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.modEqMod', [1,1,1,1], function(res){ assert.equal(res, true, '1 % 1 == 1 % 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modEqMod', [1,1,1,2], function(res){ assert.equal(res, false, '1 % 1 == 1 % 2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.modNeqMod', [1,1,1,1], function(res){ assert.equal(res, false, '1 % 1 != 1 % 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modNeqMod', [1,1,1,2], function(res){ assert.equal(res, true, '1 % 1 != 1 % 2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.modLtMod', [1,1,1,2], function(res){ assert.equal(res, true, '1 % 1 < 1 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modLtMod', [-1,1,1,2], function(res){ assert.equal(res, true, '-1 % 1 < 1 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modLtMod', [1,1,1,1], function(res){ assert.equal(res, false, '1 % 1 < 1 % 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modLtMod', [1,1,-1,2], function(res){ assert.equal(res, false, '1 % 1 < -1 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modLtMod', [1,2,1,1], function(res){ assert.equal(res, false, '1 % 2 < 1 % 1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.modLeMod', [1,1,1,2], function(res){ assert.equal(res, true, '1 % 1 <= 1 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modLeMod', [-1,1,1,2], function(res){ assert.equal(res, true, '-1 % 1 <= 1 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modLeMod', [1,1,1,1], function(res){ assert.equal(res, true, '1 % 1 <= 1 % 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modLeMod', [1,1,-1,2], function(res){ assert.equal(res, false, '1 % 1 <= -1 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modLeMod', [1,2,1,1], function(res){ assert.equal(res, false, '1 % 2 <= 1 % 1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.modGtMod', [1,1,1,2], function(res){ assert.equal(res, false, '1 % 1 > 1 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modGtMod', [-1,1,1,2], function(res){ assert.equal(res, false, '-1 % 1 > 1 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modGtMod', [1,1,1,1], function(res){ assert.equal(res, false, '1 % 1 > 1 % 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modGtMod', [1,1,-1,2], function(res){ assert.equal(res, true, '1 % 1 > -1 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modGtMod', [1,2,1,1], function(res){ assert.equal(res, true, '1 % 2 > 1 % 1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.modGeMod', [1,1,1,2], function(res){ assert.equal(res, false, '1 % 1 <= 1 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modGeMod', [-1,1,1,2], function(res){ assert.equal(res, false, '-1 % 1 <= 1 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modGeMod', [1,1,1,1], function(res){ assert.equal(res, true, '1 % 1 >= 1 % 1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modGeMod', [1,1,-1,2], function(res){ assert.equal(res, true, '1 % 1 >= -1 % 2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.modGeMod', [1,2,1,1], function(res){ assert.equal(res, true, '1 % 2 >= 1 % 1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.powEqPow', [1,1,1,1], function(res){ assert.equal(res, true, '1^1 == 1^1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powEqPow', [1,1,2,1], function(res){ assert.equal(res, false, '1^1 == 1^2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.powNeqPow', [1,1,1,1], function(res){ assert.equal(res, false, '1^1 != 1^1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powNeqPow', [1,1,2,1], function(res){ assert.equal(res, true, '1^1 != 1^2 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.powLtPow', [1,1,2,1], function(res){ assert.equal(res, true, '1^1 < 1^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powLtPow', [-1,1,1,2], function(res){ assert.equal(res, true, '-1^1 < 1^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powLtPow', [1,1,1,1], function(res){ assert.equal(res, false, '1^1 < 1^1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powLtPow', [1,1,-2,2], function(res){ assert.equal(res, false, '1^1 < -2^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powLtPow', [2,1,1,1], function(res){ assert.equal(res, false, '2^1 < 1^1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.powLePow', [1,1,2,1], function(res){ assert.equal(res, true, '1^1 <= 1^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powLePow', [-1,1,1,2], function(res){ assert.equal(res, true, '-1^1 <= 1^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powLePow', [1,1,1,1], function(res){ assert.equal(res, true, '1^1 <= 1^1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powLePow', [1,1,-2,2], function(res){ assert.equal(res, false, '1^1 <= -2^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powLePow', [2,1,1,1], function(res){ assert.equal(res, false, '2^1 <= 1^1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.powGtPow', [1,1,2,1], function(res){ assert.equal(res, false, '1^1 > 1^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powGtPow', [-1,1,1,2], function(res){ assert.equal(res, false, '-1^1 > 1^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powGtPow', [1,1,1,1], function(res){ assert.equal(res, false, '1^1 > 1^1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powGtPow', [1,1,-2,2], function(res){ assert.equal(res, true, '1^1 > -2^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powGtPow', [2,1,1,1], function(res){ assert.equal(res, true, '2^1 > 1^1 calculation failed'); });
-		
-		
-			Smack.api.execute(conName, 'tst.powGePow', [1,1,2,1], function(res){ assert.equal(res, false, '1^1 <= 1^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powGePow', [-1,1,1,2], function(res){ assert.equal(res, false, '-1^1 <= 1^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powGePow', [1,1,1,1], function(res){ assert.equal(res, true, '1^1 >= 1^1 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powGePow', [1,1,-2,2], function(res){ assert.equal(res, true, '1^1 >= -2^2 calculation failed'); });
-		
-			Smack.api.execute(conName, 'tst.powGePow', [2,1,1,1], function(res){ assert.equal(res, true, '2^1 >= 1^1 calculation failed'); });
-		
-			Smack.api.delAll(conName);
-		});
-		
-		QUnit.test( "Assign", function( assert ) {
-			var source;
-			Papu.getFileContents('testCode/varAssign.smk', function(res){ source = res; });
-			console.log(source);
-			Smack.api.compile(conName, {varAssign : source});
-		
-			Smack.api.execute(conName, 'tst.assingAndCompare', [1.1, 2.2], function(res){ assert.equal(res, true, 'Variable assign calculation failed'); });
-			
-			Smack.api.delAll(conName);
-		});
-		
-		QUnit.test( "If Else", function( assert ) {
-			var source;
-			Papu.getFileContents('testCode/ifElse.smk', function(res){ source = res; });
-			console.log(source);
-			Smack.api.compile(conName, {ifElse : source});
-		
-			Smack.api.execute(conName, 'tst.ifOneElseIfTwoElse', [1], function(res){ assert.equal(res, 1, 'If part of if else if else failed'); });
-		
-			Smack.api.execute(conName, 'tst.ifOneElseIfTwoElse', [2], function(res){ assert.equal(res, 2, 'Else if part of if else if else failed'); });
-		
-			Smack.api.execute(conName, 'tst.ifOneElseIfTwoElse', [3], function(res){ assert.equal(res, false, 'Else part of if else if else failed'); });
-		
-			Smack.api.execute(conName, 'tst.ifOneElse', [1], function(res){ assert.equal(res, 1, 'If part of if else failed'); });
-		
-			Smack.api.execute(conName, 'tst.ifOneElse', [2], function(res){ assert.equal(res, false, 'Else part of if else failed'); });
-			
-			Smack.api.delAll(conName);
-		});
-		
-		QUnit.test( "While and exec()", function( assert ) {
-			var source;
-			Papu.getFileContents('testCode/while.smk', function(res){ source = res; });
-			console.log(source);
-			Smack.api.compile(conName, {'while' : source});
-		
-			Smack.api.execute(conName, 'tst.addOneWhileLessThan', [10000], function(res){ assert.equal(res, 10000, 'While loop test failed'); });
-		
-			Smack.api.execute(conName, 'tst.callWithInput', ['tst.addOneWhileLessThan', [10000]], function(res){ assert.equal(res, 10000, 'Exec with input test failed'); });
-			
-			Smack.api.execute(conName, 'tst.callWithoutInput', ['tst.returnTrue'], function(res){ assert.equal(res, true, 'Exec without input test failed'); });
-			
-			Smack.api.delAll(conName);
-		});
-		
-		QUnit.test( "Invoke", function( assert ) {
-			var source;
-			Papu.getFileContents('testCode/invoke.smk', function(res){ source = res; });
-			console.log(source);
-			Smack.api.compile(conName, {'invoke' : source});
-		
-			Smack.api.execute(conName, 'tst.invokeAdd', [1, 1], function(res){ assert.equal(res, 2, 'Invokation with parameters failed'); });
-		
-			Smack.api.execute(conName, 'tst.invokeTrue', undefined, function(res){ assert.equal(res, true, 'Invokation without parameters failed'); });
-			
-			Smack.api.delAll(conName);
-			
-			testContext.logoutTest();
-		});
-		
+		testAll();
 	});
-};
+}

@@ -22,10 +22,10 @@
 // antlr4 tool
 
 grammar Smack;
-import Json, JsonPath;
+import Json;
 
 smkFile
-	:	comment* packageDecl (comment* funcDecl+)* (comment+ funcDecl*)*
+	:	packageDecl funcDecl*
 	;
 
 packageDecl
@@ -83,6 +83,7 @@ expression
 	|	expression Div expression				# divExpr
 	|	expression Mod expression				# modExpr
 	|	expression (Plus | Minus)+ expression	# sumExpr
+	|	Minus expression						# signedExpr
 	|	expression Eq expression				# eqExpr
 	|	expression Neq expression				# neqExpr
 	|	expression Lt expression				# ltExpr
@@ -97,28 +98,25 @@ expression
 resolvable
 	:	value		
 	|	jsonPath	
-	|	funcInvoke	
+	|	funcInvoke
 	;
 	
+	
 codeBlock
-	:	'{' (('\n')* sentence+ ('\n')*)* '}'
+	:	'{' sentence* '}' 
 	;
 	
 sentence
 	:	statement ';'
 	|	loop
 	| 	ifStat
-	|	comment
+//	|	comment
 	;
 	
 statement
 	:	varAssign
 	|	funcInvoke
 	|	retStatement
-	;
-
-comment
-	:	'//' ~('\n')* '\n'
 	;
 
 Plus	:	'+'		;
@@ -140,7 +138,11 @@ Id
 	:	[$a-zA-Z_]+[$a-zA-Z_0-9]*
 	;
 	
-// Whitespace is ignored 
+// Whitespace and comments are ignored
+Comment
+	:	'//' ~('\n')* '\n' -> skip
+	;
+
 WS 
 	: [ \t\r\n]+ -> skip 
 	; 

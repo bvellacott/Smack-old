@@ -147,12 +147,12 @@ Smack.bserver = (function(){
 		units[unit.name] = unit;
 	}
 	
+	// This needs to be redone to be able to delete the specific functions for the unit!!
 	var delUnit = function(name) {
-		if(!units[unit.name])
+		var unit = units[name]
+		if(!unit)
 			throw 'a compilation unit by the name ' + unit.name + ' doesn\'t exist';
-		for(fn in unit.funcs)
-			delete code[unit.pack][fn];
-		delete units[unit.name];
+		eval('delete ' + unit.pack);
 	}
 	
 	var getFunc = function(name) {
@@ -361,6 +361,8 @@ Smack.jsonCompilers = (function(){
 		compileExpression : function(ctx, pack) {
 			if(ctx instanceof antlr4.SmackParser.AtomExprContext)
 				return this.compileResolvable(ctx.resolvable(0), pack);
+			if(ctx instanceof antlr4.SmackParser.SignedExprContext)
+				return Smack.sourceGenerators.generateSignedExpr(this.compileExpression(ctx.expression(0), pack));
 			if(ctx instanceof antlr4.SmackParser.ParenExprContext)
 				return Smack.sourceGenerators.generateParenExpr(this.compileExpression(ctx.expression(0), pack));
 			var expr1Src = this.compileExpression(ctx.expression(0), pack);
@@ -377,14 +379,17 @@ Smack.jsonCompilers = (function(){
 				else
 					return Smack.sourceGenerators.generateMinusExpr(expr1Src, expr2Src);
 			}
+			if(ctx instanceof antlr4.SmackParser.PowExprContext) {
+				if(ctx.expression(0) instanceof antlr4.SmackParser.SignedExprContext)
+					return Smack.sourceGenerators.generateSignedPowExpr(this.compileExpression(ctx.expression(0).expression(0)), expr2Src);
+				return Smack.sourceGenerators.generatePowExpr(expr1Src, expr2Src);
+			}
 			if(ctx instanceof antlr4.SmackParser.MulExprContext)
 				return Smack.sourceGenerators.generateMulExpr(expr1Src, expr2Src);
 			if(ctx instanceof antlr4.SmackParser.DivExprContext)
 				return Smack.sourceGenerators.generateDivExpr(expr1Src, expr2Src);
 			if(ctx instanceof antlr4.SmackParser.ModExprContext)
 				return Smack.sourceGenerators.generateModExpr(expr1Src, expr2Src);
-			if(ctx instanceof antlr4.SmackParser.PowExprContext)
-				return Smack.sourceGenerators.generatePowExpr(expr1Src, expr2Src);
 			if(ctx instanceof antlr4.SmackParser.EqExprContext)
 				return Smack.sourceGenerators.generateEqExpr(expr1Src, expr2Src);
 			if(ctx instanceof antlr4.SmackParser.NeqExprContext)
@@ -465,8 +470,6 @@ Smack.jsonCompilers = (function(){
 				src = this.compileLoop(sentence, pack);
 			else if(sentence instanceof antlr4.SmackParser.IfStatContext)
 				src = this.compileIfStat(sentence);
-			else if(sentence instanceof antlr4.SmackParser.CommentContext)
-				src = this.compileComment(sentence);
 			return src;
 		},
 		compileCodeBlock : function(ctx, pack) {
@@ -496,8 +499,6 @@ Smack.jsonCompilers = (function(){
 				var c = ctx.children[i];
 				if(c instanceof antlr4.SmackParser.FuncDeclContext)
 					source += this.compileFuncDecl(c, pack);
-				else if(c instanceof antlr4.SmackParser.CommentContext)
-					source += this.compileComment(c);
 			}
 			return source;
 		}
@@ -530,6 +531,9 @@ Smack.sourceGenerators = (function(){
 				src += keyRefSrcs[i];
 			return src;
 		},
+		generateSignedExpr : function(expressionSrc) {
+			return '-' + expressionSrc;
+		},
 		generateParenExpr : function(expressionSrc) {
 			return '(' + expressionSrc + ')';
 		},
@@ -550,6 +554,9 @@ Smack.sourceGenerators = (function(){
 		},
 		generatePowExpr : function(expr1Src, expr2Src) {
 			return 'Math.pow(' + expr1Src + ', ' + expr2Src + ')';
+		},
+		generateSignedPowExpr : function(expr1Src, expr2Src) {
+			return '-Math.pow(' + expr1Src + ', ' + expr2Src + ')';
 		},
 		generateEqExpr : function(expr1Src, expr2Src) {
 			return expr1Src + ' === ' + expr2Src;
