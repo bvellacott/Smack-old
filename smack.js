@@ -152,7 +152,10 @@ Smack.bserver = (function(){
 		var unit = units[name]
 		if(!unit)
 			throw 'a compilation unit by the name ' + unit.name + ' doesn\'t exist';
-		eval('delete ' + unit.pack);
+		eval('var pack = ' + unit.pack);
+		for(var funcName in unit.funcNames)
+			delete pack[funcName];
+		delete units[unit.name];
 	}
 	
 	var getFunc = function(name) {
@@ -290,15 +293,14 @@ Smack.browserRequestHandler = function(data) {
 		throw 'Invalid uri';
 }
 
-var SmkFileWalker = function(){};
-
 Smack.compile = (function(){
-	var createUnit = function(name, smkSource, targetSource, pack) {
+	var createUnit = function(name, smkSource, targetSource, pack, funcNames) {
 		return {
 			name : name,
 			smkSource : smkSource,
 			targetSource : targetSource,
 			pack : pack,
+			funcNames : funcNames,
 		};
 	}
 	
@@ -314,8 +316,8 @@ Smack.compile = (function(){
 	return function(name, smkSource) {
 		var tree = getParseTree(smkSource);
 		var pack = Smack.jsonCompilers.compilePackageDecl(tree.packageDecl(0));
-		var targetSource = Smack.jsonCompilers.compileSmkFile(tree)
-		return createUnit(name, smkSource, targetSource, pack);
+		var result = Smack.jsonCompilers.compileSmkFile(tree)
+		return createUnit(name, smkSource, result.source, pack, result.funcNames);
 	};
 })();
 
@@ -496,13 +498,19 @@ Smack.jsonCompilers = (function(){
 		},
 		compileSmkFile : function(ctx) {
 			var pack = this.compilePackageDecl(ctx.packageDecl(0));
+			var funcNames = [];
 			var source = '';
 			for(var i = 0; i < ctx.children.length; i++) {
 				var c = ctx.children[i];
-				if(c instanceof antlr4.SmackParser.FuncDeclContext)
+				if(c instanceof antlr4.SmackParser.FuncDeclContext) {
 					source += this.compileFuncDecl(c, pack);
+					funcNames.push(c.Id(0).getText());
+				}
 			}
-			return source;
+			return {
+				source : source,
+				funcNames : funcNames
+			};
 		}
 	}
 })();
