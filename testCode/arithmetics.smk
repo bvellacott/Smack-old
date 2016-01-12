@@ -222,3 +222,25 @@ func powGtPow(a, b, c, d) { ret a^b > c^d; }
 
 func powGePow(a, b, c, d) { ret a^b >= c^d; }
 
+
+func not(a) { ret !a; }
+
+func and(a, b) { ret a && b; }
+
+func or(a, b) { ret a || b; }
+
+
+func andOr(a, b, c) { ret a && b || c; }
+
+func orAnd(a, b, c) { ret a || b && c; }
+
+
+func andParenOr(a, b, c) { ret a && (b || c); }
+
+func orParenAnd(a, b, c) { ret a || (b && c); }
+
+
+func notAnd(a, b) { ret !a && b; }
+
+func notOr(a, b) { ret !a || b; }
+

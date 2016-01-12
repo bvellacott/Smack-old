@@ -789,9 +789,24 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 					Smack.api.execute(conName, 'tst.powGePow', [1,1,1,1], function(res){ assert.equal(res, true, '1^1 >= 1^1 calculation failed'); });
 				
 					Smack.api.execute(conName, 'tst.powGePow', [1,-1,-1,1], function(res){ assert.equal(res, true, '1^-1 >= 1^1 calculation failed'); });
-				
+					
 					Smack.api.execute(conName, 'tst.powGePow', [2,1,1,1], function(res){ assert.equal(res, true, '2^1 >= 1^1 calculation failed'); });
 				
+					
+					Smack.api.execute(conName, 'tst.andOr', [false,true,false], function(res){ assert.equal(res, false, 'false && true || false calculation failed'); });
+					
+					Smack.api.execute(conName, 'tst.orAnd', [true,false,true], function(res){ assert.equal(res, true, 'true || false && true calculation failed'); });
+					
+					
+					Smack.api.execute(conName, 'tst.andParenOr', [false,true,false], function(res){ assert.equal(res, false, 'false && (true || false) calculation failed'); });
+					
+					Smack.api.execute(conName, 'tst.orParenAnd', [true,false,true], function(res){ assert.equal(res, true, 'true || (false && true) calculation failed'); });
+					
+					
+					Smack.api.execute(conName, 'tst.notAnd', [true,false], function(res){ assert.equal(res, false, '!true && false calculation failed'); });
+					
+					Smack.api.execute(conName, 'tst.notOr', [false,true], function(res){ assert.equal(res, true, '!false || true calculation failed'); });
+
 					Smack.api.delAll(conName);
 					
 					testVarAssign();

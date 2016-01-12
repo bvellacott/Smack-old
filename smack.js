@@ -363,6 +363,8 @@ Smack.jsonCompilers = (function(){
 				return this.compileResolvable(ctx.resolvable(0), pack);
 			if(ctx instanceof antlr4.SmackParser.SignedExprContext)
 				return Smack.sourceGenerators.generateSignedExpr(this.compileExpression(ctx.expression(0), pack));
+			if(ctx instanceof antlr4.SmackParser.NotExprContext)
+				return Smack.sourceGenerators.generateNotExpr(this.compileExpression(ctx.expression(0), pack));
 			if(ctx instanceof antlr4.SmackParser.ParenExprContext)
 				return Smack.sourceGenerators.generateParenExpr(this.compileExpression(ctx.expression(0), pack));
 			var expr1Src = this.compileExpression(ctx.expression(0), pack);
@@ -533,6 +535,9 @@ Smack.sourceGenerators = (function(){
 		},
 		generateSignedExpr : function(expressionSrc) {
 			return '-' + expressionSrc;
+		},
+		generateNotExpr : function(expressionSrc) {
+			return '!' + expressionSrc;
 		},
 		generateParenExpr : function(expressionSrc) {
 			return '(' + expressionSrc + ')';

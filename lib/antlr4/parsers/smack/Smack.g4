@@ -78,12 +78,13 @@ loop
 	
 expression 
 	:	'(' expression ')'						# parenExpr
-	|	<assoc=right>expression Pow expression	# powExpr
+	|	<assoc=right> expression Pow expression	# powExpr
 	|	expression Mul expression				# mulExpr
 	|	expression Div expression				# divExpr
 	|	expression Mod expression				# modExpr
 	|	expression (Plus | Minus)+ expression	# sumExpr
 	|	Minus expression						# signedExpr
+	|	Not expression							# notExpr
 	|	expression Eq expression				# eqExpr
 	|	expression Neq expression				# neqExpr
 	|	expression Lt expression				# ltExpr
@@ -119,12 +120,13 @@ statement
 	|	retStatement
 	;
 
-Plus	:	'+'		;
-Minus	:	'-'		;
+Pow		:	'^'		;
 Mul		:	'*'		;
 Div		:	'/'		;
 Mod		:	'%'		;
-Pow		:	'^'		;
+Plus	:	'+'		;
+Minus	:	'-'		;
+Not		:	'!'	;
 Eq		:	'=='	;
 Neq		:	'!='	;
 Lt		:	'<'		;
