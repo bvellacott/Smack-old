@@ -185,7 +185,7 @@ Smack.tests.testApi = function(tstCb) {
 	});
 };
 
-Smack.tests.testHost = function(conName, host, uName, pWord) {
+Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParams) {
 	Smack.api.createConnection(conName, host, 'user', 'pass123', function() {
 		
 		var con = Smack.api.getConnection(conName);
@@ -196,6 +196,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 		var testIfElse;
 		var testWhile;
 		var testInvoke;
+		var testQuery;
 		var testSyncAsync;
 		var testAll = function() {
 			testArithmetics();
@@ -867,6 +868,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 				});
 			});
 		}
+		
 		testInvoke = function() {
 			Papu.getFileContents('testCode/invoke.smk', function(source){ 
 				QUnit.test( "Invoke", function( assert ) {
@@ -879,8 +881,59 @@ Smack.tests.testHost = function(conName, host, uName, pWord) {
 					
 					Smack.api.delAll(conName);
 					
-					testSyncAsync();
+					testQuery();
 				});
+			});
+		}
+		
+		testQuery = function() {
+			QUnit.test( "Query", function( assert ) {
+				Smack.api.execute(conName, 'openDataConnection', [{name : dataConnectionParams}], function(res){ 
+					assert.ok(typeof res === 'string', 'createConnection didn\'t return a connection id'); 
+					var conId = res;
+					
+					Smack.api.execute(conName, 'createQuery', [conId, 'setItem("testItm1", "data1")', 0], function(res){ 
+						assert.ok(typeof res === 'string', 'createQuery didn\'t return a query id');
+						var queryId1 = res;
+						
+						Smack.api.execute(conName, 'runQuery', [conId, queryId1], function(res){ 
+							assert.ok(res.success, 'failed to run query: ' + queryId1); 
+
+							Smack.api.execute(conName, 'createQuery', [conId, 'getItem("testItm1")', 1], function(res){ 
+								assert.ok(typeof res === 'string', 'createQuery didn\'t return a query id');
+								var queryId2 = res;
+								
+								Smack.api.execute(conName, 'runQuery', [conId, queryId2], function(res){ 
+									assert.ok(res.success, 'failed to run query: ' + queryId2); 
+									assert.equals(res.result, 'data1', 'query: ' + queryId2 + ' returned the wrong result'); 
+
+									Smack.api.execute(conName, 'deleteQuery', [conId, queryId2], function(res){ 
+										assert.ok(res.success, 'failed to delete query: ' + queryId2); 
+
+										Smack.api.execute(conName, 'runQuery', [conId, queryId2], function(res){ 
+											assert.notOk(res.success, 'query: ' + queryId2 + ' wasn\'t deleted'); 
+
+											Smack.api.execute(conName, 'closeDataConnection', [conId], function(res){ 
+												assert.ok(res.success, 'failed to close connection: ' + conId); 
+
+												Smack.api.execute(conName, 'runQuery', [conId, queryId1], function(res){ 
+													assert.notOk(res.success, 'connection: ' + conId + ' wasn\'t closed'); 
+												});
+											});
+										});
+									});
+								});
+								
+							});
+						});
+					});
+					
+				});
+			
+				
+				Smack.api.delAll(conName);
+				
+				testSyncAsync();
 			});
 		}
 		

@@ -20,10 +20,11 @@
 <div id="qunit-fixture"></div>
 
 <!-- The tested library -->
-<script src="smack.js" ></script>
+<script src="smack-api.js" ></script>
 <script src="smack-js-compiler.js" ></script>
 <script src="smack-browser-server.js" ></script>
 <script src="stdlib.js" ></script>
+<script src="smack-data-api.js" ></script>
 
 <!-- qunit library -->
 <script src="lib/qunit-1.19.0.js" ></script>
@@ -32,7 +33,7 @@
 <script src="smack-tests.js" ></script>
 <script>
 Smack.tests.testApi();
-Smack.tests.testHost('browser', 'browser', 'uname123', 'pw123');
+Smack.tests.testHost('browser', 'browser', 'uname123', 'pw123', 'test');
 </script>
 </body>
 </html>
