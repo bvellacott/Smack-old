@@ -889,7 +889,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 		testQuery = function() {
 			QUnit.test( "Query", function( assert ) {
 				Smack.api.execute(conName, 'openDataConnection', [{name : dataConnectionParams}], function(res){ 
-					assert.ok(typeof res === 'string', 'createConnection didn\'t return a connection id'); 
+					assert.ok(typeof res === 'string', 'openDataConnection didn\'t return a connection id'); 
 					var conId = res;
 					
 					Smack.api.execute(conName, 'createQuery', [conId, 'setItem("testItm1", "data1")', 0], function(res){ 
@@ -905,7 +905,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 								
 								Smack.api.execute(conName, 'runQuery', [conId, queryId2], function(res){ 
 									assert.ok(res.success, 'failed to run query: ' + queryId2); 
-									assert.equals(res.result, 'data1', 'query: ' + queryId2 + ' returned the wrong result'); 
+									assert.equal(res.result, 'data1', 'query: ' + queryId2 + ' returned the wrong result'); 
 
 									Smack.api.execute(conName, 'deleteQuery', [conId, queryId2], function(res){ 
 										assert.ok(res.success, 'failed to delete query: ' + queryId2); 
