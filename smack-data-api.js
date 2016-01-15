@@ -10,9 +10,9 @@ Smack.bserver.code = $.extend(Smack.bserver.code, (function() {
 	
 	var runQuery = function(conId, queryStr) {
 		try {
-			if(queryStr.substring(0, 10) === 'removeItem' || queryStr.substring(0, 5) === 'clear')
-				eval('var queryResult = Storage.' + queryStr);
-			else
+//			if(queryStr.substring(0, 10) === 'removeItem' || queryStr.substring(0, 5) === 'clear')
+//				eval('var queryResult = Storage.' + queryStr);
+//			else
 				eval('var queryResult = localStorage.' + queryStr);
 		} catch(e) {
 			return {

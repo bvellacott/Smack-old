@@ -971,21 +971,21 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 				};
 				runRead1 = function() {
 					Smack.api.execute(conName, 'runQuery', [conId, queryId], function(res){
-						assert.ok(res.success, 'failed to run query: ' + queryId); 
+						assert.ok(res.success, 'failed to run query: ' + queryId  + ' : ' + res.err); 
 						assert.deepEqual(res.result, ["data1", "data2"], 'the query result is incorrect');
 						runRead2();
 					});
 				};
 				runRead2 = function() {
 					Smack.api.execute(conName, 'runQuery', [conId, queryId], function(res){
-						assert.ok(res.success, 'failed to run query: ' + queryId); 
+						assert.ok(res.success, 'failed to run query: ' + queryId  + ' : ' + res.err); 
 						assert.deepEqual(res.result, ["data3", "data4"], 'the query result is incorrect');
 						runRead3();
 					});
 				};
 				runRead3 = function() {
 					Smack.api.execute(conName, 'runQuery', [conId, queryId], function(res){
-						assert.ok(res.success, 'failed to run query: ' + queryId); 
+						assert.ok(res.success, 'failed to run query: ' + queryId  + ' : ' + res.err); 
 						assert.deepEqual(res.result, ["data5"], 'the query result is incorrect');
 						runRead4();
 					});
@@ -1003,14 +1003,14 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 				};
 				removeItem = function() {
 					Smack.api.execute(conName, 'runQueryOnce', [conId, 'removeItem("testItm")', 0], function(res){
-						assert.ok(res.success, 'failed to run remove query: ' + queryId); 
+						assert.ok(res.success, 'failed to run remove query: ' + queryId  + ' : ' + res.err); 
 						queryId = res;
 						runRead5();
 					});
 				};
 				runRead5 = function() {
 					Smack.api.execute(conName, 'runQueryOnce', [conId, 'getItem("testItm")'], function(res){
-						assert.ok(res.success, 'failed to run query: ' + queryId);
+						assert.ok(res.success, 'failed to run query: ' + queryId  + ' : ' + res.err);
 						assert.equal(res.result, null, 'the query result is incorrect');
 					});
 				};
@@ -1020,15 +1020,15 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 					}); 
 				};
 				clear = function() {
-					Smack.api.execute(conName, 'runQueryOnce', [conId, 'removeItem("testItm")', 0], function(res){
-						assert.ok(res.success, 'failed to run remove query: ' + queryId); 
+					Smack.api.execute(conName, 'runQueryOnce', [conId, 'clear()', 0], function(res){
+						assert.ok(res.success, 'failed to run clear query: ' + queryId  + ' : ' + res.err); 
 						queryId = res;
 						runRead6();
 					});
 				};
 				runRead6 = function() {
 					Smack.api.execute(conName, 'runQueryOnce', [conId, 'getItem("testItm")'], function(res){
-						assert.ok(res.success, 'failed to run query: ' + queryId);
+						assert.ok(res.success, 'failed to run query: ' + queryId  + ' : ' + res.err);
 						assert.equal(res.result, null, 'the query result is incorrect');
 						
 						closeDataConnection(conId);
