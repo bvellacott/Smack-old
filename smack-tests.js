@@ -918,6 +918,8 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 
 												Smack.api.execute(conName, 'runQuery', [conId, queryId1], function(res){ 
 													assert.notOk(res.success, 'connection: ' + conId + ' wasn\'t closed'); 
+													
+													testQueryBatchesRemoveAndClear();
 												});
 											});
 										});
@@ -929,11 +931,113 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 					});
 					
 				});
-			
+			});
+		}
+		
+		testQueryBatchesRemoveAndClear = function() {
+			QUnit.test( "Query batches, remove and clear", function( assert ) {
+				var conId;
+				var queryId;
+				var openConnection;
+				var createItems;
+				var createReadQuery;
+				var runRead1;
+				var runRead2;
+				var runRead3;
+				var runRead4;
+				var createItems2;
+				var removeItem;
+				var runRead5;
+				var createItems3;
+				var clear;
+				var runRead6;
 				
-				Smack.api.delAll(conName);
+				openConnection = function() {
+					Smack.api.execute(conName, 'openDataConnection', [{name : dataConnectionParams}], function(res){
+						conId = res;
+						createItems();
+					});
+				};
+				createItems = function() {
+					Smack.api.execute(conName, 'runQueryOnce', [conId, 'setItem("testItm", ["data1", "data2", "data3", "data4", "data5"])', 0], function(res){
+						createReadQuery()
+					}); 
+				};
+				createReadQuery = function() {
+					Smack.api.execute(conName, 'createQuery', [conId, 'getItem("testItm")', 2], function(res){
+						queryId = res;
+						runRead1();
+					});
+				};
+				runRead1 = function() {
+					Smack.api.execute(conName, 'runQuery', [conId, queryId], function(res){
+						assert.ok(res.success, 'failed to run query: ' + queryId); 
+						assert.deepEqual(res.result, ["data1", "data2"], 'the query result is incorrect');
+						runRead2();
+					});
+				};
+				runRead2 = function() {
+					Smack.api.execute(conName, 'runQuery', [conId, queryId], function(res){
+						assert.ok(res.success, 'failed to run query: ' + queryId); 
+						assert.deepEqual(res.result, ["data3", "data4"], 'the query result is incorrect');
+						runRead3();
+					});
+				};
+				runRead3 = function() {
+					Smack.api.execute(conName, 'runQuery', [conId, queryId], function(res){
+						assert.ok(res.success, 'failed to run query: ' + queryId); 
+						assert.deepEqual(res.result, ["data5"], 'the query result is incorrect');
+						runRead4();
+					});
+				};
+				runRead4 = function() {
+					Smack.api.execute(conName, 'runQuery', [conId, queryId], function(res){
+						assert.notOk(res.success, 'this query should be completed and removed: ' + queryId);
+						createItems2();
+					});
+				};
+				createItems2 = function() {
+					Smack.api.execute(conName, 'runQueryOnce', [conId, 'setItem("testItm", ["data1", "data2", "data3", "data4", "data5"])', 0], function(res){
+						removeItem()
+					}); 
+				};
+				removeItem = function() {
+					Smack.api.execute(conName, 'runQueryOnce', [conId, 'removeItem("testItm")', 0], function(res){
+						assert.ok(res.success, 'failed to run remove query: ' + queryId); 
+						queryId = res;
+						runRead5();
+					});
+				};
+				runRead5 = function() {
+					Smack.api.execute(conName, 'runQueryOnce', [conId, 'getItem("testItm")'], function(res){
+						assert.ok(res.success, 'failed to run query: ' + queryId);
+						assert.equal(res.result, null, 'the query result is incorrect');
+					});
+				};
+				createItems3 = function() {
+					Smack.api.execute(conName, 'runQueryOnce', [conId, 'setItem("testItm", ["data1", "data2", "data3", "data4", "data5"])', 0], function(res){
+						clear()
+					}); 
+				};
+				clear = function() {
+					Smack.api.execute(conName, 'runQueryOnce', [conId, 'removeItem("testItm")', 0], function(res){
+						assert.ok(res.success, 'failed to run remove query: ' + queryId); 
+						queryId = res;
+						runRead6();
+					});
+				};
+				runRead6 = function() {
+					Smack.api.execute(conName, 'runQueryOnce', [conId, 'getItem("testItm")'], function(res){
+						assert.ok(res.success, 'failed to run query: ' + queryId);
+						assert.equal(res.result, null, 'the query result is incorrect');
+						
+						closeDataConnection(conId);
+						
+						testSyncAsync();
+					});
+				};
 				
-				testSyncAsync();
+				openConnection();
 			});
 		}
 		
