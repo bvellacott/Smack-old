@@ -889,32 +889,35 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 		testQuery = function() {
 			QUnit.test( "Query", function( assert ) {
 				Smack.api.execute(conName, 'openDataConnection', [{name : dataConnectionParams}], function(res){ 
-					assert.ok(typeof res === 'string', 'openDataConnection didn\'t return a connection id'); 
-					var conId = res;
+					assert.ok(typeof res.success, 'openDataConnection didn\'t succeed'); 
+					assert.ok(typeof res.id === 'string', 'openDataConnection didn\'t return a connection id'); 
+					var conId = res.id;
 					
-					Smack.api.execute(conName, 'createQuery', [conId, 'setItem("testItm1", "data1")', 0], function(res){ 
-						assert.ok(typeof res === 'string', 'createQuery didn\'t return a query id');
-						var queryId1 = res;
+					Smack.api.execute(conName, 'createQuery', [conId, "setItem('testItm1', '\"data1\"')", 0], function(res){ 
+						assert.ok(typeof res.success, 'createQuery didn\'t succeed');
+						assert.ok(typeof res.id === 'string', 'createQuery didn\'t return a query id');
+						var queryId1 = res.id;
 						
 						Smack.api.execute(conName, 'runQuery', [conId, queryId1], function(res){ 
-							assert.ok(res.success, 'failed to run query: ' + queryId1); 
+							assert.ok(res.success, 'failed to run query: ' + queryId1 + ' : ' + res.err); 
 
 							Smack.api.execute(conName, 'createQuery', [conId, 'getItem("testItm1")', 1], function(res){ 
-								assert.ok(typeof res === 'string', 'createQuery didn\'t return a query id');
-								var queryId2 = res;
+								assert.ok(typeof res.success, 'createQuery didn\'t succeed');
+								assert.ok(typeof res.id === 'string', 'createQuery didn\'t return a query id');
+								var queryId2 = res.id;
 								
 								Smack.api.execute(conName, 'runQuery', [conId, queryId2], function(res){ 
-									assert.ok(res.success, 'failed to run query: ' + queryId2); 
+									assert.ok(res.success, 'failed to run query: ' + queryId2 + ' : ' + res.err); 
 									assert.equal(res.result, 'data1', 'query: ' + queryId2 + ' returned the wrong result'); 
 
 									Smack.api.execute(conName, 'deleteQuery', [conId, queryId2], function(res){ 
-										assert.ok(res.success, 'failed to delete query: ' + queryId2); 
+										assert.ok(res.success, 'failed to delete query: ' + queryId2 + ' : ' + res.err); 
 
 										Smack.api.execute(conName, 'runQuery', [conId, queryId2], function(res){ 
 											assert.notOk(res.success, 'query: ' + queryId2 + ' wasn\'t deleted'); 
 
 											Smack.api.execute(conName, 'closeDataConnection', [conId], function(res){ 
-												assert.ok(res.success, 'failed to close connection: ' + conId); 
+												assert.ok(res.success, 'failed to close connection: ' + conId + ' : ' + res.err); 
 
 												Smack.api.execute(conName, 'runQuery', [conId, queryId1], function(res){ 
 													assert.notOk(res.success, 'connection: ' + conId + ' wasn\'t closed'); 
@@ -954,18 +957,18 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 				
 				openConnection = function() {
 					Smack.api.execute(conName, 'openDataConnection', [{name : dataConnectionParams}], function(res){
-						conId = res;
+						conId = res.id;
 						createItems();
 					});
 				};
 				createItems = function() {
-					Smack.api.execute(conName, 'runQueryOnce', [conId, 'setItem("testItm", ["data1", "data2", "data3", "data4", "data5"])', 0], function(res){
+					Smack.api.execute(conName, 'runQueryOnce', [conId, 'setItem("testItm", \'' + JSON.stringify(["data1", "data2", "data3", "data4", "data5"]) + '\')', 0], function(res){
 						createReadQuery()
 					}); 
 				};
 				createReadQuery = function() {
 					Smack.api.execute(conName, 'createQuery', [conId, 'getItem("testItm")', 2], function(res){
-						queryId = res;
+						queryId = res.id;
 						runRead1();
 					});
 				};
@@ -997,7 +1000,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 					});
 				};
 				createItems2 = function() {
-					Smack.api.execute(conName, 'runQueryOnce', [conId, 'setItem("testItm", ["data1", "data2", "data3", "data4", "data5"])', 0], function(res){
+					Smack.api.execute(conName, 'runQueryOnce', [conId, 'setItem("testItm", \'' + JSON.stringify(["data1", "data2", "data3", "data4", "data5"]) + '\')', 0], function(res){
 						removeItem()
 					}); 
 				};
@@ -1015,7 +1018,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 					});
 				};
 				createItems3 = function() {
-					Smack.api.execute(conName, 'runQueryOnce', [conId, 'setItem("testItm", ["data1", "data2", "data3", "data4", "data5"])', 0], function(res){
+					Smack.api.execute(conName, 'runQueryOnce', [conId, 'setItem("testItm", \'' + JSON.stringify(["data1", "data2", "data3", "data4", "data5"]) + '\')', 0], function(res){
 						clear()
 					}); 
 				};

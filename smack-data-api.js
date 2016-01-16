@@ -8,12 +8,12 @@ Smack.bserver.code = $.extend(Smack.bserver.code, (function() {
 	var queryId = 0;
 	var connections = {};
 	
-	var runQuery = function(conId, queryStr) {
+	var runQuery = function(conId, queryId, batchSize) {
+		var result;
 		try {
-//			if(queryStr.substring(0, 10) === 'removeItem' || queryStr.substring(0, 5) === 'clear')
-//				eval('var queryResult = Storage.' + queryStr);
-//			else
-				eval('var queryResult = localStorage.' + queryStr);
+			var query = connections[conId].queries[queryId];
+			result = getQueryResult(query)
+			deleteQueryIfFinished(conId, queryId);
 		} catch(e) {
 			return {
 				success : false,
@@ -22,16 +22,43 @@ Smack.bserver.code = $.extend(Smack.bserver.code, (function() {
 		}
 		return {
 			success : true,
-			result : queryResult
+			result : result
 		};
 	};
+	
+	var getQueryResult = function(query) {
+		var result;
+		if(!query.result) {
+			eval('var resultStr = localStorage.' + query.queryStr);
+			if(resultStr !== undefined)
+				query.result = JSON.parse(resultStr);
+		}
+		if($.isArray(query.result))
+			result = query.result.splice(0, query.batchSize);
+		else
+			result = query.result;
+		return result;
+	}
+	
+	var deleteQueryIfFinished = function(conId, queryId) {
+		var query = connections[conId].queries[queryId];
+		if($.isArray(query.result)){
+			if(query.result.length == 0)
+				delete connections[conId].queries[queryId];
+		}
+		else
+			delete connections[conId].queries[queryId];
+	}
 	
 	return {
 		// creates a connection and returns a unique connection id
 		openDataConnection : function(conParams) {
 			conId++;
 			connections[conId] = { queries : {} };
-			return '' + conId;
+			return {
+				success : true,
+				id : '' + conId
+			}
 		},
 		// closes a connection by it's id and deletes all corresponding queries
 		closeDataConnection : function(conId) {
@@ -52,10 +79,17 @@ Smack.bserver.code = $.extend(Smack.bserver.code, (function() {
 				queryStr : queryStr.trim(),
 				batchSize : batchSize
 			};
-			return '' + queryId;
+			return {
+				success : true,
+				id : '' + queryId
+			}
 		},
 		runQueryOnce : function(conId, queryStr, batchSize) {
-			return runQuery(conId, queryStr);
+			var code = Smack.bserver.code;
+			var queryId = code.createQuery(conId, queryStr, batchSize).id;
+			var result = runQuery(conId, queryId);
+			code.deleteQuery(conId, queryId);
+			return result;
 		},
 		deleteQuery : function(conId, queryId) {
 			try {
@@ -68,7 +102,7 @@ Smack.bserver.code = $.extend(Smack.bserver.code, (function() {
 			}
 			return { success : true };
 		},
-		runQuery : function(conId, queryId) {
+		runQuery : function(conId, queryId, batchSize) {
 			if(!connections[conId])
 				return {
 					success : false,
@@ -79,7 +113,7 @@ Smack.bserver.code = $.extend(Smack.bserver.code, (function() {
 					success : false,
 					err : 'The connection: ' + conId + ' doesn\'t have a query with the id: ' + queryId
 				}
-			return runQuery(conId, connections[conId].queries[queryId].queryStr);
+			return runQuery(conId, queryId);
 		},
 	}
 })());
