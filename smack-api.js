@@ -87,6 +87,10 @@ Smack.api = (function($) {
 		execute : function(connection, name, args, cb) {
 			this.call(connection, '/execute', undefined, { name : name, args : args }, cb)
 		},
+		// The javascript arguments object is used as input
+		executeAnonymous : function(connection, src, args, cb) {
+			this.call(connection, '/executeAnonymous', undefined, { src : src, args : args }, cb)
+		},
 		createConnection : function(name, host, uname, passw, cb) {
 			if(this.hasConnection(name))
 				throw 'A connection by the name ' + name + ' exists';

@@ -43,6 +43,14 @@ Smack.bserver = (function(){
 		return curObj;
 	}
 	
+	var generateReturnObjectAssignSrc = function(objName, argNames) {
+		var src = objName + ' = {};\n';
+		for(var i = 0; i < argNames.length; i++)
+			src += objName + '["' + argNames[i] + '"] = ' + argNames[i] + ';\n';
+		src += 'ret ' + objName + ';\n';
+		return src;
+	}
+	
 	var activeSession = undefined;
 	
 	return {
@@ -98,6 +106,25 @@ Smack.bserver = (function(){
 		},
 		execute : function(name, args, cb) { 
 			cb(getFunc(name).apply(undefined, args));
+		},
+		executeAnonymous : function(src, args, cb) {
+			var argNames = [];
+			var argValues = []
+			for(var argName in args) {
+				argNames.push(argName);
+				argValues.push(args[argName]);
+			} 
+			var anonFuncSrc = 'pack anonymous;\n func anonymous(' + argNames.join(', ') + ') {\n' + 
+			src +  + '\n' +
+			generateReturnObjectAssignSrc('_rEToBJ_', argNames);
+			var server = this;
+			var compileAndExecute = function(){
+				server.compile({ anonymous : anonFuncSrc }, execute);
+			};
+			var execute = function(){
+				server.execute('anonymous.anonymous', argValues, cb);
+			};
+			this.del(['anonymous'], compileAndExecute);
 		},
 	};
 })();
@@ -157,6 +184,13 @@ Smack.browserRequestHandler = function(data) {
 	else if(data.uri === '/execute') {
 		try {
 			Smack.bserver.execute(data.body.name, data.body.args, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/executeAnonymous') {
+		try {
+			Smack.bserver.executeAnonymous(data.body.src, data.body.args, function(res) {
 				if(data.cb) data.cb({result : res});
 			});
 		}catch(e) { if(data.cb) data.cb({err : e}); }

@@ -181,6 +181,17 @@ Smack.tests.testApi = function(tstCb) {
 			body : { name : 'cUnit', args : ['arg1', 'arg2']}
 		}, 'The api produced invalid request data for execute');
 
+		Smack.api.executeAnonymous('test', 'source code', {arg1 : 'value1', arg2 : 'value2'}, cb);
+		assert.ok(cbCalled, "Callback didn't get called"); 
+		cbCalled = false;
+		assert.deepEqual(con.latestRequest, {
+			url : 'tst.com/executeAnonymous',
+			headers : {
+				'content-type' : 'application/json', 'session' : 'tst123'
+			},
+			body : { src : 'source code', args : {arg1 : 'value1', arg2 : 'value2'}}
+		}, 'The api produced invalid request data for executeAnonymous');
+
 		Smack.api.closeConnection('test');
 	});
 };
@@ -191,6 +202,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 		var con = Smack.api.getConnection(conName);
 		con.executeAllSync = true;
 		
+		var testExecuteAnonymous;
 		var testArithmetics;
 		var testVarAssign;
 		var testIfElse;
@@ -199,9 +211,23 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 		var testQuery;
 		var testSyncAsync;
 		var testAll = function() {
-			testArithmetics();
+			testExecuteAnonymous();
 		};
 		
+		testExecuteAnonymous = function() {
+			Papu.getFileContents('testCode/varAssign.smk', function(source){ 
+				QUnit.test( "executeAnonymous", function( assert ) {
+					console.log(source);
+					Smack.api.executeAnonymous(conName, 'c = a + b;', {a : 1, b : 2, c : 0}, function(res){ 
+						assert.deepEqual(res, {a : 1, b : 2, c : 3}, 'Execute anonymous failed'); 
+					});
+					
+					Smack.api.delAll(conName);
+					
+					testArithmetics();
+				});
+			});
+		}
 		testArithmetics = function() {
 			Papu.getFileContents('testCode/arithmetics.smk', function(source){ 
 				QUnit.test( "Arithmetics", function( assert ) {
@@ -1015,6 +1041,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 					Smack.api.execute(conName, 'runQueryOnce', [conId, 'getItem("testItm")'], function(res){
 						assert.ok(res.success, 'failed to run query: ' + queryId  + ' : ' + res.err);
 						assert.equal(res.result, null, 'the query result is incorrect');
+						createItems3();
 					});
 				};
 				createItems3 = function() {
@@ -1034,9 +1061,9 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 						assert.ok(res.success, 'failed to run query: ' + queryId  + ' : ' + res.err);
 						assert.equal(res.result, null, 'the query result is incorrect');
 						
-						closeDataConnection(conId);
-						
-						testSyncAsync();
+						Smack.api.execute(conName, 'closeDataConnection', [conId], function(res){
+							testSyncAsync();
+						});
 					});
 				};
 				
