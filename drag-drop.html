@@ -9,6 +9,8 @@
 <body>
 
 <p>Drag the W3Schools image into the rectangle:</p>
+<input type="button" value='undo' onclick="execCommand('undo')"/>
+<input type="button" value='redo' onclick="execCommand('redo')"/>
 <something id='s' draggable="true" ondragstart="drag(event)">blah</something>
 
 <div id="div1" ondrop="drop(event)" ondragover="allowDrop(event)" data-consuming-drop="true" ></div>
@@ -18,10 +20,6 @@
 
 </body>
 <script>
-$('#ta1').mousemove(function(e) {
-	console.log($('#ta1').caret());
-});
-
 function allowDrop(ev) {
     ev.preventDefault();
 }
@@ -45,5 +43,37 @@ function drop(ev) {
     else
     	$target.append(ev.dataTransfer.getData('Text'));
 }
+
+document.handleUndoRedo = function (keyEvent) {
+	   var keyCode = keyEvent.keyCode;
+	   if (keyEvent.metaKey === true || keyEvent.ctrlKey === true) {
+	      if (keyCode === 89) {
+	         //fire your custom redo logic
+	         keyEvent.preventDefault();
+	         return true;
+	      } 
+	      else if (keyCode === 90) {
+	         //special case (CTRL-SHIFT-Z) does a redo (on a mac for example)
+	         if (keyEvent.shiftKey === true) {
+	            //fire your custom redo logic
+	         }
+	         else {
+	            //fire your custom undo logic
+	         }
+	         keyEvent.preventDefault();
+	         return true;
+	      }
+	   }
+	   return false;
+	};
+
+$(document).keydown(document.handleUndoRedo);
+	
+document._execCommand = document.execCommand;
+document.execCommand = function(keyEvent) {
+	if(document.handleUndoRedo(keyEvent))
+		return false;
+	document._execCommand;
+};
 </script>
 </html>
