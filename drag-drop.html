@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<style>
+#div1 {width:350px;height:70px;padding:10px;border:1px solid #aaaaaa;}
+</style>
+	<script src="lib/jquery-1.10.2.js"></script>
+</head>
+<body>
+
+<p>Drag the W3Schools image into the rectangle:</p>
+<something id='s' draggable="true" ondragstart="drag(event)">blah</something>
+
+<div id="div1" ondrop="drop(event)" ondragover="allowDrop(event)" data-consuming-drop="true" ></div>
+<textarea id="ta1"></textarea>
+<br>
+<img id="drag1" src="http://www.w3schools.com/html/img_logo.gif" draggable="true" ondragstart="drag(event)" width="336" height="69">
+
+</body>
+<script>
+$('#ta1').mousemove(function(e) {
+	console.log($('#ta1').caret());
+});
+
+function allowDrop(ev) {
+    ev.preventDefault();
+}
+
+function drag(ev) {
+    if(ev.target instanceof Node) {
+    	ev.dataTransfer.setData("Text", ev.target.outerHTML);
+    	ev.dataTransfer.setData("Node", ev.target.id);
+    }
+}
+
+function drop(ev) {
+    ev.preventDefault();
+    var $target = $(ev.target);
+    
+    if($target.attr('data-consuming-drop')) {
+    	var id = ev.dataTransfer.getData('Node');
+    	if(id)
+    		$target.append($('#' + id));
+    }
+    else
+    	$target.append(ev.dataTransfer.getData('Text'));
+}
+</script>
+</html>

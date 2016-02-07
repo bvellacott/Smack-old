@@ -99,7 +99,7 @@ Smack.api = (function($) {
 			var con = undefined;
 			if(host == 'tst.com')
 				con = newConnection(name, host, testRequestHandler);
-			else if(host == 'browser')
+			else if(host == 'browser' && Smack.browserRequestHandler)
 				con = newConnection(name, host, Smack.browserRequestHandler);
 			else
 				con = newConnection(name, host, requestHandler);

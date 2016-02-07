@@ -246,7 +246,13 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 					Smack.api.execute(conName, 'tst.add', [0,-1.1], function(res){ assert.equal(res, -1.1, '0 + -1.1 calculation failed'); });
 				
 					Smack.api.execute(conName, 'tst.add', [1.1,0], function(res){ assert.equal(res, 1.1, '1.1 + 0 calculation failed'); });
-				
+					
+					Smack.api.execute(conName, 'tst.add', ["string1"," string2"], function(res){ assert.equal(res, "string1 string2", '"string1" + " string2" concatenation failed'); });
+					
+					Smack.api.execute(conName, 'tst.add', [1," string2"], function(res){ assert.equal(res, "1 string2", '1 + " string2" concatenation failed'); });
+					
+					Smack.api.execute(conName, 'tst.add', ["string ",2], function(res){ assert.equal(res, "string 2", '"string " + 2 concatenation failed'); });
+					
 				
 					Smack.api.execute(conName, 'tst.sub', [1.1,1.1], function(res){ assert.equal(res, 0, '1.1 - 1.1 calculation failed'); });
 				

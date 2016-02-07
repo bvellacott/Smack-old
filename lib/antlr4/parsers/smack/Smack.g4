@@ -73,7 +73,7 @@ elseStat
 	;
 	
 loop
-	: 'while' '(' expression ')' codeBlock
+	:	'while' '(' expression ')' codeBlock
 	;
 	
 expression 
@@ -102,7 +102,6 @@ resolvable
 	|	funcInvoke
 	;
 	
-	
 codeBlock
 	:	'{' sentence* '}' 
 	;
@@ -126,7 +125,7 @@ Div		:	'/'		;
 Mod		:	'%'		;
 Plus	:	'+'		;
 Minus	:	'-'		;
-Not		:	'!'	;
+Not		:	'!'		;
 Eq		:	'=='	;
 Neq		:	'!='	;
 Lt		:	'<'		;
