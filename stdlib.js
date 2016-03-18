@@ -12,6 +12,9 @@ Smack.bserver.code = $.extend(Smack.bserver.code, {
 	},
 	wait : function(millis) {
 		throw 'wait hasn\'t been implemented in the browser standard library';
+	},
+	ary : {
+		length : function(ary) { return ary.length; }
 	}
 });
 
