@@ -126,6 +126,36 @@ Smack.bserver = (function(){
 			};
 			this.del(['anonymous'], compileAndExecute);
 		},
+		setTestData : function(funcName, tstName, tstArgs, cb) {
+			var allData = JSON.parse(localStorage.getItem('testData.' + funcName));
+			allData[tstName] = tstArgs;
+			localStorage.setItem('testData.' + funcName, JSON.stringify(allData));
+			if(cb) cb('done');
+		},
+		removeTestData : function(funcName, tstName, cb) {
+			var allData = JSON.parse(localStorage.getItem('testData.' + funcName));
+			delete allData[tstName];
+			localStorage.setItem('testData.' + funcName + '.' + tstName, JSON.stringify(allData));
+			if(cb) cb('done');
+		},
+		removeAllTestData : function(funcName, cb) {
+			localStorage.removeItem('testData.' + funcName)
+			if(cb) cb('done');
+		},
+		getTestData : function(funcName, tstName, cb) {
+			var result = {};
+			var allData = JSON.parse(localStorage.getItem('testData.' + funcName));
+			if(allData && allData[tstName])
+				result = allData[tstName];
+			if(cb) cb(result);
+		},
+		getAllTestData : function(funcName, cb) {
+			var result = {};
+			var allData = JSON.parse(localStorage.getItem('testData.' + funcName));
+			if(allData)
+				result = allData;
+			if(cb) cb(result);
+		},
 	};
 })();
 
@@ -191,6 +221,41 @@ Smack.browserRequestHandler = function(data) {
 	else if(data.uri === '/executeAnonymous') {
 		try {
 			Smack.bserver.executeAnonymous(data.body.src, data.body.args, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/setTestData') {
+		try {
+			Smack.bserver.setTestData(data.body.funcName, data.body.tstName, data.body.tstArgs, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/removeTestData') {
+		try {
+			Smack.bserver.removeTestData(data.body.funcName, data.body.tstName, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/removeAllTestData') {
+		try {
+			Smack.bserver.removeAllTestData(data.body.funcName, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/getTestData') {
+		try {
+			Smack.bserver.getTestData(data.body.funcName, data.body.tstName, function(res) {
+				if(data.cb) data.cb({result : res});
+			});
+		}catch(e) { if(data.cb) data.cb({err : e}); }
+	}
+	else if(data.uri === '/getAllTestData') {
+		try {
+			Smack.bserver.getAllTestData(data.body.funcName, function(res) {
 				if(data.cb) data.cb({result : res});
 			});
 		}catch(e) { if(data.cb) data.cb({err : e}); }

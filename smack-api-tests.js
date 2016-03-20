@@ -233,6 +233,8 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 			Papu.getFileContents('testCode/fibonacci.smk', function(source){ 
 				QUnit.test( "test data storage", function( assert ) {
 					console.log(source);
+
+					Smack.api.compile(conName, {fibonacci : source});
 					
 					var cbCalled = false;
 					var cbFlagger = function(res) { cbCalled = true; };
@@ -258,7 +260,7 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 					cbCalled = false;
 					
 					var allTestData;
-					Smack.api.getAllTestData(conName, 'tst.isFibonacci', 'tst2', function(res) {
+					Smack.api.getAllTestData(conName, 'tst.isFibonacci', function(res) {
 						assert.ok(res.success, 'getAllTestData failed: ' + res.err);
 						allTestData = res.result;
 						args = Object.keys(allTestData);
@@ -270,6 +272,53 @@ Smack.tests.testHost = function(conName, host, uName, pWord, dataConnectionParam
 					Smack.api.execute(conName, 'tst.containsFibonacci', [args], function(res){ assert.ok(res, 'arguments contain 3, which is a fibonacci number'); });
 					Smack.api.execute(conName, 'tst.areFibonacci', [args[0], args[1]], function(res){ assert.notOk(res, '4 is not a fibonacci numberalthough 3 is'); });
 					
+					Smack.api.removeAllTestData(conName, 'tst.isFibonacci', cbFlagger);
+					assert.ok(cbCalled, 'removeAllTestData callback didn\'t get called');
+					cbCalled = false;
+					
+					Smack.api.getAllTestData(conName, 'tst.isFibonacci', function(res) {
+						assert.ok(res.success, 'getAllTestData failed: ' + res.err);
+						allTestData = res.result;
+					});
+					
+					assert.deepEqual(allTestData, {}, 'All the test data should have been removed for tst.isFibonacci');
+
+					Smack.api.setTestData(conName, 'tst.containsFibonacci', 'tst1', [[6, 8]], cbFlagger);
+					assert.ok(cbCalled, 'getTestData callback didn\'t get called');
+					cbCalled = false;
+					
+					Smack.api.setTestData(conName, 'tst.containsFibonacci', 'tst2', [[5, 8]], cbFlagger);
+					assert.ok(cbCalled, 'getTestData callback didn\'t get called');
+					cbCalled = false;
+					
+					Smack.api.getTestData(conName, 'tst.containsFibonacci', 'tst1', function(res){
+						assert.ok(res.success, 'getTestData failed: ' + res.err);
+						args = res.result;
+					});
+					
+					assert.deepEqual(args[0], [6, 8], 'The test data for containsFibonacci is incorrect');
+					
+					Smack.api.removeTestData(conName, 'tst.containsFibonacci', 'tst1', cbFlagger);
+					assert.ok(cbCalled, 'removeAllTestData callback didn\'t get called');
+					cbCalled = false;
+					
+					Smack.api.getAllTestData(conName, 'tst.containsFibonacci', function(res) {
+						assert.ok(res.success, 'getAllTestData failed: ' + res.err);
+						allTestData = res.result;
+					});
+					
+					assert.deepEqual(allTestData, { tst2 : [[5, 8]] }, 'All the test data should have been removed for tst.containsFibonacci');
+					
+					Smack.api.del(conName, ['fibonacci'], cbFlagger);
+					assert.ok(cbCalled, 'del callback didn\'t get called');
+					cbCalled = false;
+
+					Smack.api.getAllTestData(conName, 'tst.containsFibonacci', function(res) {
+						assert.ok(res.success, 'getAllTestData failed: ' + res.err);
+						allTestData = res.result;
+					});
+					
+					assert.deepEqual(allTestData, {}, 'All the test data should have been removed for tst.containsFibonacci');
 					
 					Smack.api.delAll(conName);
 					

@@ -92,19 +92,19 @@ Smack.api = (function($) {
 			this.call(connection, '/executeAnonymous', undefined, { src : src, args : args }, cb)
 		},
 		setTestData : function(connection, funcName, tstName, tstArgs, cb) {
-			throw 'setTestData not implemented';
+			this.call(connection, '/setTestData', undefined, { funcName : funcName, tstName : tstName, tstArgs : tstArgs }, cb)
 		},
 		removeTestData : function(connection, funcName, tstName, cb) {
-			throw 'removeTestData not implemented';
+			this.call(connection, '/removeTestData', undefined, { funcName : funcName, tstName : tstName }, cb)
 		},
 		removeAllTestData : function(connection, funcName, cb) {
-			throw 'removeAllTestData not implemented';
+			this.call(connection, '/removeAllTestData', undefined, { funcName : funcName }, cb)
 		},
 		getTestData : function(connection, funcName, tstName, cb) {
-			throw 'getTestData not implemented';
+			this.call(connection, '/getTestData', undefined, { funcName : funcName, tstName : tstName }, cb)
 		},
 		getAllTestData : function(connection, funcName, cb) {
-			throw 'getAllTestData not implemented';
+			this.call(connection, '/getAllTestData', undefined, { funcName : funcName }, cb)
 		},
 		createConnection : function(name, host, uname, passw, cb) {
 			if(this.hasConnection(name))
