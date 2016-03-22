@@ -15,12 +15,13 @@ func containsFibonacci(arr) {
 	i = 0;
 	while(i < ary.length(arr)) {
 		if(isFibonacci(arr[i])) {
-			return true;
+			ret true;
 		}
+		i = i+1;
 	}
-	return false;
+	ret false;
 }
 
 func areFibonacci(a, b) {
-	return isFibonacci(a) && isFibonacci(b);
+	ret isFibonacci(a) && isFibonacci(b);
 }

@@ -13,5 +13,5 @@ func invokeAdd(a, b) {
 }
 
 func invokeTrue() {
-	ret retTrue();
+	ret tst.retTrue();
 }

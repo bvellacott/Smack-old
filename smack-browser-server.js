@@ -19,14 +19,20 @@ Smack.bserver = (function(){
 		units[unit.name] = unit;
 	}
 	
+	var removeAllTestData = function(funcName) {
+		localStorage.removeItem('testData.' + funcName)
+	}
+	
 	// This needs to be redone to be able to delete the specific functions for the unit!!
 	var delUnit = function(name) {
 		var unit = units[name]
 		if(!unit)
 			throw 'a compilation unit by the name ' + unit.name + ' doesn\'t exist';
 		eval('var pack = ' + unit.pack);
-		for(var i = 0; i < unit.funcNames.length; i++)
+		for(var i = 0; i < unit.funcNames.length; i++) {
 			delete pack[unit.funcNames[i]];
+			removeAllTestData(unit.packAbr + '.' + unit.funcNames[i]);
+		}
 		delete units[unit.name];
 	}
 	
@@ -115,8 +121,9 @@ Smack.bserver = (function(){
 				argValues.push(args[argName]);
 			} 
 			var anonFuncSrc = 'pack anonymous;\n func anonymous(' + argNames.join(', ') + ') {\n' + 
-			src +  + '\n' +
-			generateReturnObjectAssignSrc('_rEToBJ_', argNames);
+			src + '\n' +
+			generateReturnObjectAssignSrc('_rEToBJ_', argNames) +
+			'\n}';
 			var server = this;
 			var compileAndExecute = function(){
 				server.compile({ anonymous : anonFuncSrc }, execute);
@@ -128,18 +135,22 @@ Smack.bserver = (function(){
 		},
 		setTestData : function(funcName, tstName, tstArgs, cb) {
 			var allData = JSON.parse(localStorage.getItem('testData.' + funcName));
+			if(!allData)
+				allData = {};
 			allData[tstName] = tstArgs;
 			localStorage.setItem('testData.' + funcName, JSON.stringify(allData));
 			if(cb) cb('done');
 		},
 		removeTestData : function(funcName, tstName, cb) {
 			var allData = JSON.parse(localStorage.getItem('testData.' + funcName));
-			delete allData[tstName];
-			localStorage.setItem('testData.' + funcName + '.' + tstName, JSON.stringify(allData));
+			if(allData) {
+				delete allData[tstName];
+				localStorage.setItem('testData.' + funcName, JSON.stringify(allData));
+			}
 			if(cb) cb('done');
 		},
 		removeAllTestData : function(funcName, cb) {
-			localStorage.removeItem('testData.' + funcName)
+			removeAllTestData(funcName);
 			if(cb) cb('done');
 		},
 		getTestData : function(funcName, tstName, cb) {

@@ -5,11 +5,14 @@ if(!Smack)
 
 Smack.compile = (function(){
 	var createUnit = function(name, smkSource, targetSource, pack, funcNames) {
+		var packParts = pack.split('.');
+		var packAbr = packParts[packParts.length-1];
 		return {
 			name : name,
 			smkSource : smkSource,
 			targetSource : targetSource,
 			pack : pack,
+			packAbr : packAbr,
 			funcNames : funcNames,
 		};
 	}
@@ -183,7 +186,7 @@ Smack.jsCompilers = (function(){
 			else if(sentence instanceof antlr4.SmackParser.LoopContext)
 				src = this.compileLoop(sentence, pack);
 			else if(sentence instanceof antlr4.SmackParser.IfStatContext)
-				src = this.compileIfStat(sentence);
+				src = this.compileIfStat(sentence, pack);
 			return src;
 		},
 		compileCodeBlock : function(ctx, pack) {
@@ -308,7 +311,7 @@ Smack.sourceGenerators = (function(){
 		generateFuncInvoke : function(pack, ids, resolvableSrcs) {
 			var src = '';
 			if(ids.length > 1)
-				src += 'Smack.bserver.code.' + '.' + ids.join('.');
+				src += 'Smack.bserver.code.' + ids.join('.');
 			else if(Smack.bserver.code[ids[0]])
 				src += 'Smack.bserver.code.' + ids[0];
 			else

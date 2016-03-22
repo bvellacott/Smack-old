@@ -6,3 +6,4 @@ func assingAndCompare(a, b) {
 	
 	ret a + b == d + c;
 }
+
