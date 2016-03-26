@@ -4,7 +4,7 @@ if(!Smack.jsCompilers)
 	throw 'Smack javascript compilers are required';
 
 Smack.bserver = (function(){
-	var code = {};
+	var code = { _funcs_ : {} };
 	var units = {};
 	var compile = function(name, source) {
 		addUnit(Smack.compile(name, source));
@@ -14,7 +14,8 @@ Smack.bserver = (function(){
 		if(units[unit.name])
 			throw 'a compilation unit by the name ' + unit.name + ' already exists';
 		if(!eval(unit.pack))
-			eval(unit.pack + ' = {};');
+			eval(unit.pack + ' = { _funcs_ : {}};');
+		console.log(unit.targetSource);
 		eval(unit.targetSource);
 		units[unit.name] = unit;
 	}
@@ -28,9 +29,9 @@ Smack.bserver = (function(){
 		var unit = units[name]
 		if(!unit)
 			throw 'a compilation unit by the name ' + unit.name + ' doesn\'t exist';
-		eval('var pack = ' + unit.pack);
+		eval('var funcs = ' + unit.pack + '._funcs_');
 		for(var i = 0; i < unit.funcNames.length; i++) {
-			delete pack[unit.funcNames[i]];
+			delete funcs[unit.funcNames[i]];
 			removeAllTestData(unit.packAbr + '.' + unit.funcNames[i]);
 		}
 		delete units[unit.name];
@@ -39,14 +40,15 @@ Smack.bserver = (function(){
 	var getFunc = function(name) {
 		var parts = name.split('.');
 		var curObj = code;
-		for(var i = 0; i < parts.length; i++) {
+		var funcName = parts[parts.length-1];
+		for(var i = 0; i < parts.length-1; i++) {
 			curObj = curObj[parts[i]];
 			if(!curObj)
 				throw 'No function exists by the name ' + name;
 		}
-		if(!(typeof curObj === 'function'))
+		if(!curObj._funcs_ || !(typeof curObj._funcs_[funcName] === 'function'))
 			throw 'No function exists by the name ' + name;
-		return curObj;
+		return curObj._funcs_[funcName];
 	}
 	
 	var generateReturnObjectAssignSrc = function(objName, argNames) {

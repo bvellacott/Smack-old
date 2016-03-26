@@ -47,13 +47,12 @@ Smack.api = (function($) {
 				body : body, 
 				cb : function(response) {
 					if(response.err) throw 'Error prosessing call to ' + this.con.host + uri + ' : ' + response.err;
-					if(cb) cb(response.result)
 					con.pendingUri = undefined;
+					if(cb) cb(response.result)
 					if(con.queue.length > 0) {
 						var data = con.queue.shift();
 						data.con.request(data);
 					}
-						
 				},
 			};
 			if((con.executeAllSync && con.pendingUri) || syncUris[con.pendingUri] || (syncUris[uri] && con.pendingUri))

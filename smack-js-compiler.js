@@ -311,11 +311,11 @@ Smack.sourceGenerators = (function(){
 		generateFuncInvoke : function(pack, ids, resolvableSrcs) {
 			var src = '';
 			if(ids.length > 1)
-				src += 'Smack.bserver.code.' + ids.join('.');
-			else if(Smack.bserver.code[ids[0]])
-				src += 'Smack.bserver.code.' + ids[0];
+				src += 'Smack.bserver.code.' + ids.slice(0, ids.length-1).join('.') + '._funcs_.' + ids[ids.length-1] ;
+			else if(Smack.bserver.code._funcs_[ids[0]])
+				src += 'Smack.bserver.code._funcs_.' + ids[0];
 			else
-				src += pack + '.' + ids[0]
+				src += pack + '._funcs_.' + ids[0]
 			src += '(' + resolvableSrcs.join(', ') + ')';
 			return src;	
 		},
@@ -347,7 +347,7 @@ Smack.sourceGenerators = (function(){
 			return source;
 		},
 		generateFuncDecl : function(pack, ids, codeBlockSrc) {
-			var funcPath = pack + '.' + ids[0];
+			var funcPath = pack + '._funcs_.' + ids[0];
 			eval('if(' + pack + ' && ' + funcPath + ') throw "the function ' + funcPath + ' already exists";' )
 			var source = funcPath + ' = function(';
 			var isFirst = true;

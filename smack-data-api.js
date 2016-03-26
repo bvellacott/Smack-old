@@ -3,7 +3,7 @@ if(!$)
 if(!Smack.bserver)
 	throw 'Smack browser server is required';
 
-Smack.bserver.code = $.extend(Smack.bserver.code, (function() {
+Smack.bserver.code._funcs_ = $.extend(Smack.bserver.code._funcs_, (function() {
 	var conId = 0;
 	var queryId = 0;
 	var connections = {};
@@ -86,9 +86,9 @@ Smack.bserver.code = $.extend(Smack.bserver.code, (function() {
 		},
 		runQueryOnce : function(conId, queryStr, batchSize) {
 			var code = Smack.bserver.code;
-			var queryId = code.createQuery(conId, queryStr, batchSize).id;
+			var queryId = code._funcs_.createQuery(conId, queryStr, batchSize).id;
 			var result = runQuery(conId, queryId);
-			code.deleteQuery(conId, queryId);
+			code._funcs_.deleteQuery(conId, queryId);
 			return result;
 		},
 		deleteQuery : function(conId, queryId) {
