@@ -1,4 +1,5 @@
 App = Ember.Application.create();
+App.ApplicationAdapter = DS.LSSerializer.extend({ namespace : 'browser-server' });
 
 //App.Router.map(function() {
 //	  this.route("posts", { path: "/" }, function() {
